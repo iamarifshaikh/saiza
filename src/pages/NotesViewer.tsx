@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import PDFViewer from '@/components/pdf/PDFViewer';
@@ -21,7 +21,7 @@ const notesData: Record<string, { id: string; title: string; isPremium: boolean 
 
 const NotesViewer = () => {
     const { courseType, domain, subject, noteId } = useParams();
-    const navigate = useNavigate();
+    // const navigate = useNavigate();
     const auth = useAuth();
 
     const [showSignupPopup, setShowSignupPopup] = useState(false);
@@ -40,14 +40,19 @@ const NotesViewer = () => {
 
     // Initial popup logic - show signup if not signed up
     useEffect(() => {
+    queueMicrotask(() => {
         if (!auth.isSignedUp && !auth.hasShownInitialPopup) {
             setShowSignupPopup(true);
             setCanCloseSignup(true);
-            setSignupMessage('Sign up to unlock all features and save your progress');
+            setSignupMessage(
+                'Sign up to unlock all features and save your progress'
+            );
         } else if (auth.isSignedUp && !auth.hasCompletedInfo) {
             setShowUserInfoPopup(true);
         }
-    }, [auth.isSignedUp, auth.hasShownInitialPopup, auth.hasCompletedInfo]);
+    });
+}, [auth.isSignedUp, auth.hasShownInitialPopup, auth.hasCompletedInfo]);
+
 
     // Start reading timer
     useEffect(() => {

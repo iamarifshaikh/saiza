@@ -45,11 +45,13 @@ export const useAuth = () => {
         localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authState));
     }, [authState]);
 
-    const signUp = useCallback((email: string, password: string, name: string) => {
+    const signUp = useCallback((email: string, _password: string, name: string) => {
+        // const _password = password;
         const user: User = {
             id: Math.random().toString(36).substring(7),
             name,
             email,
+            // password:_password,
             college: '',
             semester: '',
             isPremium: false,
