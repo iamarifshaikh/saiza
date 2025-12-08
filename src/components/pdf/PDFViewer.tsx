@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Button } from '@/components/ui/button';
+// import { Button } from '@/components/ui/button';
 import {
     ZoomIn,
     ZoomOut,
@@ -16,6 +16,7 @@ interface PDFViewerProps {
     isBlurred?: boolean;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const PDFViewer = ({ pdfUrl, isPremium = false, isBlurred = false }: PDFViewerProps) => {
     const [zoom, setZoom] = useState(100);
     const [currentPage, setCurrentPage] = useState(1);
