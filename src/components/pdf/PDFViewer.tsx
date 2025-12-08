@@ -16,8 +16,7 @@ interface PDFViewerProps {
     isBlurred?: boolean;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const PDFViewer = ({ pdfUrl, isPremium = false, isBlurred = false }: PDFViewerProps) => {
+const PDFViewer = ({ isPremium = false, isBlurred = false }: PDFViewerProps) => {
     const [zoom, setZoom] = useState(100);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages] = useState(10); // Simulated
