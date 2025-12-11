@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import PDFViewer from '@/components/pdf/PDFViewer';
@@ -30,7 +30,6 @@ const notesData: Record<string, { id: string; title: string; isPremium: boolean 
 
 const NotesViewer = () => {
   const { courseType, domain, subject, noteId } = useParams();
-  const navigate = useNavigate();
   const auth = useAuth();
 
   const [showSignupPopup, setShowSignupPopup] = useState(false);
@@ -141,12 +140,12 @@ const NotesViewer = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      
+
       <main className="pt-24 lg:pt-28 pb-16 lg:pb-24">
         <div className="container mx-auto px-4 lg:px-8">
           {/* Breadcrumb & Back */}
           <div className="flex items-center justify-between mb-6 animate-fade-up">
-            <Link 
+            <Link
               to={`/study/${courseType}/${domain}/${subject}`}
               className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
             >
@@ -166,7 +165,7 @@ const NotesViewer = () => {
                   Add to My Words
                 </Button>
               )}
-              
+
               {isPremiumNote && !isPremiumUser && (
                 <div className="flex items-center gap-2 bg-primary/10 rounded-full px-4 py-2">
                   <Crown size={16} className="text-primary" />
@@ -188,7 +187,7 @@ const NotesViewer = () => {
 
           {/* PDF Viewer */}
           <div className={`animate-fade-up stagger-2 relative ${isLocked ? 'pointer-events-none' : ''}`}>
-            <PDFViewer 
+            <PDFViewer
               pdfUrl="/sample.pdf"
               isPremium={isPremiumNote}
               isBlurred={shouldBlur || isLocked}
@@ -208,8 +207,8 @@ const NotesViewer = () => {
                   <p className="text-muted-foreground mb-6">
                     Get full access to all premium study materials with SAIZA Premium
                   </p>
-                  <Button 
-                    variant="premium" 
+                  <Button
+                    variant="premium"
                     size="lg"
                     onClick={() => setShowPremiumPopup(true)}
                   >
@@ -250,7 +249,7 @@ const NotesViewer = () => {
       <Footer />
 
       {/* Popups */}
-      <SignupPopup 
+      <SignupPopup
         isOpen={showSignupPopup}
         onClose={handleCloseSignup}
         onSignup={handleSignup}
@@ -258,12 +257,12 @@ const NotesViewer = () => {
         message={signupMessage}
       />
 
-      <UserInfoPopup 
+      <UserInfoPopup
         isOpen={showUserInfoPopup}
         onComplete={handleCompleteInfo}
       />
 
-      <PremiumPopup 
+      <PremiumPopup
         isOpen={showPremiumPopup}
         onClose={() => setShowPremiumPopup(false)}
         onBuyPremium={handleBuyPremium}

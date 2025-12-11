@@ -1,16 +1,15 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { 
-  Shield, 
-  Plus, 
-  Trash2, 
-  BookOpen, 
+import {
+  Shield,
+  Plus,
+  Trash2,
+  BookOpen,
   FolderOpen,
   FileText,
   Crown,
   LogOut,
-  Save,
   ArrowLeft
 } from 'lucide-react';
 import { toast } from 'sonner';

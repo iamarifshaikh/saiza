@@ -55,7 +55,7 @@ const getInitialState = (): AuthState => {
     recentNotes: [],
     myWordsPlaylists: [],
   };
-  
+
   try {
     const stored = localStorage.getItem(AUTH_STORAGE_KEY);
     if (stored) {
@@ -82,7 +82,7 @@ export const useAuth = () => {
     localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authState));
   }, [authState]);
 
-  const signUp = useCallback((email: string, password: string, name: string) => {
+  const signUp = useCallback((email: string, _password: string, name: string) => {
     const user: User = {
       id: Math.random().toString(36).substring(7),
       name,
@@ -91,14 +91,14 @@ export const useAuth = () => {
       semester: '',
       isPremium: false,
     };
-    
+
     setAuthState(prev => ({
       ...prev,
       isSignedUp: true,
       user,
       hasShownInitialPopup: true,
     }));
-    
+
     return true;
   }, []);
 
@@ -209,11 +209,11 @@ export const useAuth = () => {
       myWordsPlaylists: prev.myWordsPlaylists.map(p =>
         p.id === playlistId
           ? {
-              ...p,
-              notes: p.notes.some(n => n.noteId === note.noteId)
-                ? p.notes
-                : [...p.notes, { ...note, addedAt: Date.now() }],
-            }
+            ...p,
+            notes: p.notes.some(n => n.noteId === note.noteId)
+              ? p.notes
+              : [...p.notes, { ...note, addedAt: Date.now() }],
+          }
           : p
       ),
     }));

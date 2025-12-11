@@ -1,9 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { Button } from '@/components/ui/button';
-import { 
-  ZoomIn, 
-  ZoomOut, 
-  ChevronLeft, 
+import {
+  ZoomIn,
+  ZoomOut,
+  ChevronLeft,
   ChevronRight,
   Maximize2,
   Minimize2,
@@ -18,7 +17,7 @@ interface PDFViewerProps {
   onPageChange?: (page: number) => void;
 }
 
-const PDFViewer = ({ pdfUrl, isPremium = false, isBlurred = false, onPageChange }: PDFViewerProps) => {
+const PDFViewer = ({ pdfUrl: _pdfUrl, isPremium = false, isBlurred = false, onPageChange }: PDFViewerProps) => {
   const [zoom, setZoom] = useState(100);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages] = useState(10); // Simulated
@@ -53,7 +52,7 @@ const PDFViewer = ({ pdfUrl, isPremium = false, isBlurred = false, onPageChange 
         return false;
       }
     };
-    
+
     document.addEventListener('keydown', handleKeyDown, true);
     document.addEventListener('keyup', (e) => {
       if (e.key === 'PrintScreen') {
@@ -63,7 +62,7 @@ const PDFViewer = ({ pdfUrl, isPremium = false, isBlurred = false, onPageChange 
         setTimeout(() => setScreenshotAttempted(false), 3000);
       }
     });
-    
+
     return () => {
       document.removeEventListener('keydown', handleKeyDown, true);
     };
@@ -111,13 +110,13 @@ const PDFViewer = ({ pdfUrl, isPremium = false, isBlurred = false, onPageChange 
 
   const handleZoomIn = () => setZoom(prev => Math.min(prev + 25, 200));
   const handleZoomOut = () => setZoom(prev => Math.max(prev - 25, 50));
-  
+
   const handlePrevPage = () => {
     const newPage = Math.max(currentPage - 1, 1);
     setCurrentPage(newPage);
     onPageChange?.(newPage);
   };
-  
+
   const handleNextPage = () => {
     const newPage = Math.min(currentPage + 1, totalPages);
     setCurrentPage(newPage);
@@ -135,7 +134,7 @@ const PDFViewer = ({ pdfUrl, isPremium = false, isBlurred = false, onPageChange 
   };
 
   return (
-    <div 
+    <div
       ref={containerRef}
       className={`relative flex flex-col bg-gradient-to-b from-secondary/5 to-secondary/10 rounded-3xl overflow-hidden border border-border/50 shadow-lg ${isFullscreen ? 'fixed inset-0 z-50 rounded-none' : 'h-[calc(100vh-200px)] min-h-[500px]'}`}
       style={{
@@ -175,7 +174,7 @@ const PDFViewer = ({ pdfUrl, isPremium = false, isBlurred = false, onPageChange 
 
         <div className="flex items-center gap-1">
           {/* Zoom Controls */}
-          <button 
+          <button
             onClick={handleZoomOut}
             className="w-9 h-9 rounded-xl flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             disabled={isBlurred}
@@ -183,7 +182,7 @@ const PDFViewer = ({ pdfUrl, isPremium = false, isBlurred = false, onPageChange 
             <ZoomOut size={18} />
           </button>
           <span className="w-14 text-center text-sm font-medium">{zoom}%</span>
-          <button 
+          <button
             onClick={handleZoomIn}
             className="w-9 h-9 rounded-xl flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             disabled={isBlurred}
@@ -194,7 +193,7 @@ const PDFViewer = ({ pdfUrl, isPremium = false, isBlurred = false, onPageChange 
           <div className="w-px h-6 bg-border mx-2" />
 
           {/* Page Navigation */}
-          <button 
+          <button
             onClick={handlePrevPage}
             className="w-9 h-9 rounded-xl flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             disabled={currentPage === 1 || isBlurred}
@@ -204,7 +203,7 @@ const PDFViewer = ({ pdfUrl, isPremium = false, isBlurred = false, onPageChange 
           <span className="text-sm font-medium px-2">
             {currentPage} / {totalPages}
           </span>
-          <button 
+          <button
             onClick={handleNextPage}
             className="w-9 h-9 rounded-xl flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             disabled={currentPage === totalPages || isBlurred}
@@ -215,7 +214,7 @@ const PDFViewer = ({ pdfUrl, isPremium = false, isBlurred = false, onPageChange 
           <div className="w-px h-6 bg-border mx-2" />
 
           {/* Fullscreen */}
-          <button 
+          <button
             onClick={toggleFullscreen}
             className="w-9 h-9 rounded-xl flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
           >
@@ -225,9 +224,9 @@ const PDFViewer = ({ pdfUrl, isPremium = false, isBlurred = false, onPageChange 
       </div>
 
       {/* PDF Content Area */}
-      <div 
+      <div
         className={`flex-1 overflow-auto custom-scrollbar p-4 md:p-8 ${isBlurred ? 'premium-blur select-none' : ''}`}
-        style={{ 
+        style={{
           userSelect: 'none',
           WebkitUserSelect: 'none',
           MozUserSelect: 'none',
@@ -237,9 +236,9 @@ const PDFViewer = ({ pdfUrl, isPremium = false, isBlurred = false, onPageChange 
         onCut={(e) => e.preventDefault()}
         onDragStart={(e) => e.preventDefault()}
       >
-        <div 
+        <div
           className="mx-auto bg-card rounded-2xl shadow-soft overflow-hidden pdf-protected-container"
-          style={{ 
+          style={{
             width: `${Math.min(800 * (zoom / 100), 1200)}px`,
             minHeight: '600px',
           }}
@@ -253,12 +252,12 @@ const PDFViewer = ({ pdfUrl, isPremium = false, isBlurred = false, onPageChange 
 
             <div className="space-y-4 text-foreground/80 leading-relaxed">
               <p>
-                An array is a collection of items stored at contiguous memory locations. 
-                The idea is to store multiple items of the same type together. This makes 
-                it easier to calculate the position of each element by simply adding an 
+                An array is a collection of items stored at contiguous memory locations.
+                The idea is to store multiple items of the same type together. This makes
+                it easier to calculate the position of each element by simply adding an
                 offset to a base value.
               </p>
-              
+
               <div className="bg-muted/30 rounded-xl p-4 font-mono text-sm">
                 <pre className="text-primary">{`// Array declaration in C++
 int arr[5] = {1, 2, 3, 4, 5};
@@ -277,14 +276,14 @@ cout << arr[0]; // Output: 1`}</pre>
 
               <h3 className="text-lg font-semibold mt-6">Advantages</h3>
               <p>
-                Arrays allow random access of elements. This makes accessing elements 
-                by position faster. Arrays have better cache locality that can make a 
+                Arrays allow random access of elements. This makes accessing elements
+                by position faster. Arrays have better cache locality that can make a
                 pretty big difference in performance.
               </p>
 
               <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 mt-6">
                 <p className="text-sm font-medium text-primary">
-                  Important: Practice implementing these concepts with real coding problems 
+                  Important: Practice implementing these concepts with real coding problems
                   to solidify your understanding.
                 </p>
               </div>
@@ -294,7 +293,7 @@ cout << arr[0]; // Output: 1`}</pre>
       </div>
 
       {/* Invisible overlay to prevent direct interaction/screenshots */}
-      <div 
+      <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background: 'transparent',
