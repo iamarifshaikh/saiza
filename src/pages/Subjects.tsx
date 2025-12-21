@@ -9,6 +9,7 @@ import SignupPopup from "@/components/popups/SignupPopup";
 import UserInfoPopup from "@/components/popups/UserInfoPopup";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
 // Subject Data Mock
 const subjectsByDomain: Record<string, { id: string; title: string; isPremium: boolean; code: string }[]> = {
@@ -164,8 +165,8 @@ const Subjects = () => {
             </div>
           )}
 
-          {/* Subjects Grid */}
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-8">
+          {/* Subjects Grid/List */}
+          <div className="flex flex-col sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
             {filteredSubjects.map((subject, index) => (
               <Link
                 key={subject.id}
@@ -174,28 +175,58 @@ const Subjects = () => {
                 className="group relative animate-fade-up"
                 style={{ animationDelay: `${(index + 1) * 0.05}s` }}
               >
-                <div className={`h-full bg-white rounded-[2rem] p-6 lg:p-8 border border-gray-100 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:border-primary/20 hover:-translate-y-1 relative overflow-hidden flex flex-col`}>
+                {/* Desktop Card View / Mobile List Item */}
+                <div className={`
+                    h-full bg-white border border-gray-100 transition-all duration-300 relative overflow-hidden flex
+                    rounded-[1.5rem] sm:rounded-[2rem] p-4 sm:p-6 lg:p-8 
+                    flex-row sm:flex-col items-center sm:items-stretch gap-4 sm:gap-0
+                    hover:shadow-xl hover:shadow-primary/5 hover:border-primary/20 hover:-translate-y-1
+                  `}>
 
-                  {/* Subject Code Logic */}
-                  <div className="flex justify-between items-start mb-6">
-                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${subject.isPremium ? 'bg-amber-50 text-amber-500' : 'bg-blue-50 text-blue-500'}`}>
-                      {subject.isPremium ? <Crown size={24} /> : <BookOpen size={24} />}
+                  {/* Icon/Badge - Side in mobile, Top in desktop */}
+                  <div className="flex sm:justify-between items-center sm:items-start sm:mb-6 shrink-0">
+                    <div className={cn(
+                      "w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl flex items-center justify-center transition-colors",
+                      subject.isPremium ? 'bg-amber-50 text-amber-500' : 'bg-blue-50 text-blue-500 group-hover:bg-primary/10 group-hover:text-primary'
+                    )}>
+                      {subject.isPremium ? <Crown size={20} className="sm:w-6 sm:h-6" /> : <BookOpen size={20} className="sm:w-6 sm:h-6" />}
                     </div>
-                    <span className="bg-gray-50 text-gray-400 text-xs font-bold px-3 py-1 rounded-full border border-gray-100 flex items-center gap-1">
-                      <Hash size={12} /> {subject.code}
+                    <span className="hidden sm:flex bg-gray-50 text-gray-400 text-[10px] font-bold px-2 py-1 rounded-full border border-gray-100 items-center gap-1 uppercase tracking-tighter">
+                      <Hash size={10} /> {subject.code}
                     </span>
                   </div>
 
-                  <h3 className="font-display text-xl font-bold mb-2 text-gray-800 group-hover:text-primary transition-colors line-clamp-2">
-                    {subject.title}
-                  </h3>
+                  <div className="flex-1 min-w-0">
+                    {/* Code tag for mobile only */}
+                    <div className="sm:hidden mb-1">
+                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{subject.code}</span>
+                    </div>
 
-                  <div className="mt-auto pt-6 flex items-center justify-between border-t border-gray-50">
-                    <span className={`text-xs font-bold uppercase tracking-wider ${subject.isPremium ? 'text-amber-500' : 'text-gray-400 group-hover:text-primary transition-colors'}`}>
-                      {subject.isPremium && !auth.user?.isPremium ? 'Premium Content' : 'View Notes'}
+                    <h3 className="font-display text-base sm:text-xl font-bold text-gray-800 group-hover:text-primary transition-colors line-clamp-1 sm:line-clamp-2 sm:mb-2">
+                      {subject.title}
+                    </h3>
+
+                    {/* Meta info for mobile only */}
+                    <p className="sm:hidden text-[10px] text-gray-500">
+                      {subject.isPremium ? 'Premium Access' : 'Free Notes'}
+                    </p>
+                  </div>
+
+                  {/* Action block - Hidden text on mobile, full width on desktop */}
+                  <div className="sm:mt-auto sm:pt-6 flex items-center justify-end sm:justify-between sm:border-t sm:border-gray-50 shrink-0">
+                    <span className={cn(
+                      "hidden sm:inline text-[10px] font-bold uppercase tracking-wider",
+                      subject.isPremium ? 'text-amber-500' : 'text-gray-400 group-hover:text-primary transition-colors'
+                    )}>
+                      {subject.isPremium && !auth.user?.isPremium ? 'Locked' : 'View Notes'}
                     </span>
 
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${subject.isPremium && !auth.user?.isPremium ? 'bg-gray-100 text-gray-400' : 'bg-black text-white group-hover:translate-x-1'}`}>
+                    <div className={cn(
+                      "w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300",
+                      subject.isPremium && !auth.user?.isPremium
+                        ? 'bg-gray-100 text-gray-400'
+                        : 'bg-black text-white group-hover:translate-x-1 sm:group-hover:translate-x-1.5'
+                    )}>
                       {subject.isPremium && !auth.user?.isPremium ? <Lock size={14} /> : <ArrowRight size={14} />}
                     </div>
                   </div>

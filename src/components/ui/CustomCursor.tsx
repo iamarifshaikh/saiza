@@ -23,7 +23,7 @@ const CustomCursor = () => {
 
     return (
         <div
-            className="fixed pointer-events-none z-[9999] transition-transform duration-100 ease-out flex items-start gap-1"
+            className="hidden lg:flex fixed pointer-events-none z-[9999] transition-transform duration-100 ease-out items-start gap-1"
             style={{
                 left: position.x,
                 top: position.y,
