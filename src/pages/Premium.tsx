@@ -1,7 +1,7 @@
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
-import { Check, Crown, Zap, Download, ShieldCheck, Sparkles, Headphones } from "lucide-react";
+import { Check, Crown, Download, ShieldCheck, Sparkles, Headphones } from "lucide-react";
 
 const Premium = () => {
     return (

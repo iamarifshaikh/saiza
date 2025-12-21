@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
@@ -7,21 +7,15 @@ import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/useAuth';
 import {
   User,
-  Mail,
   GraduationCap,
-  Calendar,
   Crown,
-  LogOut,
   Edit3,
   Check,
-  X,
-  Shield,
   Clock,
   BookOpen,
   FolderHeart,
   Plus,
   Trash2,
-  FileText,
   ArrowRight,
   Flame,
   LayoutDashboard,

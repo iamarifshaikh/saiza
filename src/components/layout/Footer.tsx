@@ -4,7 +4,6 @@ import {
     Instagram,
     Twitter,
     Youtube,
-    Send,
     MapPin,
     Mail,
     Phone
