@@ -5,6 +5,7 @@ import FeaturesSection from "@/components/home/FeaturesSection";
 import CoursesSection from "@/components/home/CoursesSection";
 import TestimonialsSection from "@/components/home/TestimonialsSection";
 import FAQSection from "@/components/home/FAQSection";
+import Reveal from "@/components/animations/Reveal";
 const Index = () => {
     return (
         <div className="min-h-screen bg-slate-50/50 font-sans selection:bg-primary/20 selection:text-primary relative overflow-hidden">

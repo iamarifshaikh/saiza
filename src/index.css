@@ -666,3 +666,54 @@
 .animate-fade-up {
   animation: fade-up 0.5s ease-out forwards;
 }
+
+/* Reveal Animations */
+.reveal {
+  opacity: 0;
+  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.reveal.active {
+  opacity: 1;
+  transform: translate(0, 0) scale(1);
+}
+
+.reveal-fade {
+  transform: translateY(20px);
+}
+
+.reveal-slide-left {
+  transform: translateX(-30px);
+}
+
+.reveal-slide-right {
+  transform: translateX(30px);
+}
+
+.reveal-zoom {
+  transform: scale(0.95);
+}
+
+@keyframes reveal-fade {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes reveal-slide-left {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}

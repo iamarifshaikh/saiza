@@ -202,7 +202,7 @@ const Subjects = () => {
                       <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{subject.code}</span>
                     </div>
 
-                    <h3 className="font-display text-base sm:text-xl font-bold text-gray-800 group-hover:text-primary transition-colors line-clamp-1 sm:line-clamp-2 sm:mb-2">
+                    <h3 className="font-display text-base sm:text-xl font-bold text-gray-800 group-hover:text-primary transition-colors sm:line-clamp-2 sm:mb-2">
                       {subject.title}
                     </h3>
 

@@ -209,7 +209,7 @@ const NotesList = () => {
                     {/* Content */}
                     <div className="flex-grow min-w-0 space-y-1 lg:space-y-2">
                       <div className="flex items-center gap-2 lg:gap-3">
-                        <h3 className="font-display text-base lg:text-xl font-bold text-gray-900 group-hover:text-primary transition-colors truncate">
+                        <h3 className="font-display text-base lg:text-xl font-bold text-gray-900 group-hover:text-primary transition-colors sm:truncate">
                           {note.title}
                         </h3>
                         {note.isPremium && (
@@ -218,7 +218,7 @@ const NotesList = () => {
                           </span>
                         )}
                       </div>
-                      <p className="text-gray-500 text-xs lg:text-sm line-clamp-1 leading-relaxed">{note.description}</p>
+                      <p className="text-gray-500 text-xs lg:text-sm line-clamp-2 sm:line-clamp-1 leading-relaxed">{note.description}</p>
 
                       <div className="flex flex-wrap items-center gap-2 lg:gap-3 text-[10px] lg:text-xs font-bold text-gray-400 pt-1">
                         <span className="flex items-center gap-1.5 bg-gray-50/80 px-2 py-1 rounded-lg border border-gray-100">
