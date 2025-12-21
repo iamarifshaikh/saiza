@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 
 const CustomCursor = () => {
+    const { user, isSignedUp } = useAuth();
     const [position, setPosition] = useState({ x: 0, y: 0 });
     const [isPointer, setIsPointer] = useState(false);
     const [isGrabbing, setIsGrabbing] = useState(false);
@@ -55,10 +57,12 @@ const CustomCursor = () => {
                 </svg>
             )}
 
-            {/* Badge */}
-            <div className="px-2 py-0.5 bg-primary text-white text-[10px] font-black rounded-full shadow-lg whitespace-nowrap -mt-1 -ml-1 border border-white/20 select-none uppercase tracking-widest">
-                Arif
-            </div>
+            {/* Badge - Show name only if signed up/logged in */}
+            {isSignedUp && user?.name && (
+                <div className="px-2 py-0.5 bg-primary text-white text-[10px] font-black rounded-full shadow-lg whitespace-nowrap -mt-1 -ml-1 border border-white/20 select-none uppercase tracking-widest">
+                    @{user.name.split(' ')[0]}
+                </div>
+            )}
         </div>
     );
 };

@@ -3,7 +3,7 @@ import { useParams, Link, useLocation } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Download, Share2, Flag, Lock, FileText, BookOpen, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Download, Share2, Flag, Lock, FileText, BookOpen, ChevronLeft, ChevronRight, Plus, Check } from 'lucide-react';
 import { useAuth } from "@/hooks/useAuth";
 import PremiumPopup from "@/components/popups/PremiumPopup";
 import SignupPopup from "@/components/popups/SignupPopup";
@@ -17,6 +17,7 @@ const NotesViewer = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showPremiumPopup, setShowPremiumPopup] = useState(false);
   const [showSignupPopup, setShowSignupPopup] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
 
   // Page Navigation State
   const [currentPage, setCurrentPage] = useState(1);
@@ -113,10 +114,25 @@ const NotesViewer = () => {
             </div>
 
             <div className="flex items-center gap-3 w-full md:w-auto justify-end">
-              <Button variant="ghost" size="icon" className="text-gray-500 rounded-full">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setIsSaved(!isSaved);
+                  toast.success(isSaved ? "Removed from My Notes" : "Added to My Notes");
+                }}
+                className={cn(
+                  "rounded-full px-4 font-bold flex items-center gap-2 transition-all",
+                  isSaved ? "bg-primary/10 text-primary hover:bg-primary/20" : "text-gray-500 hover:bg-gray-100"
+                )}
+              >
+                {isSaved ? <Check size={18} /> : <Plus size={18} />}
+                {isSaved ? "Saved" : "Add to My Notes"}
+              </Button>
+              <Button variant="ghost" size="icon" className="text-gray-500 rounded-full hover:bg-gray-100">
                 <Flag size={18} />
               </Button>
-              <Button variant="ghost" size="icon" className="text-gray-500 rounded-full">
+              <Button variant="ghost" size="icon" className="text-gray-500 rounded-full hover:bg-gray-100">
                 <Share2 size={18} />
               </Button>
               <Button
@@ -232,7 +248,7 @@ const NotesViewer = () => {
                       onClick={() => !isLoggedIn ? setShowSignupPopup(true) : setShowPremiumPopup(true)}
                       className="rounded-full bg-primary hover:bg-primary/90 text-white font-bold px-10 h-14 shadow-xl shadow-primary/20"
                     >
-                      {!isLoggedIn ? 'Sign In to View' : 'Unlock Full Access - ₹499/yr'}
+                      {!isLoggedIn ? 'Sign In to View' : 'Unlock Full Access - ₹599/yr'}
                     </Button>
                   </div>
 

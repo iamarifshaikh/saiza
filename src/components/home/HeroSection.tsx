@@ -67,7 +67,7 @@ const HeroSection = () => {
                             <span className="inline-block px-3 py-1 bg-black text-white rounded-full text-[10px] font-black mb-3 uppercase tracking-wider">50% Off</span>
                             <h4 className="text-sm font-bold text-gray-400 mb-1 uppercase tracking-widest">Premium Plan</h4>
                             <div className="flex items-end gap-2">
-                                <span className="text-4xl font-black tracking-tighter text-black">$160</span>
+                                <span className="text-4xl font-black tracking-tighter text-black">₹599</span>
                                 <span className="text-[10px] font-bold text-gray-500 mb-1.5 uppercase leading-tight">Yearly<br />Access</span>
                             </div>
                         </div>

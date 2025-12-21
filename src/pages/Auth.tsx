@@ -4,9 +4,11 @@ import { Input } from '@/components/ui/input';
 import { Eye, EyeOff, Sparkles, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 
 const Auth = () => {
     const navigate = useNavigate();
+    const auth = useAuth();
     const [isLogin, setIsLogin] = useState(true);
     const [showPassword, setShowPassword] = useState(false);
     const [formData, setFormData] = useState({
@@ -28,6 +30,9 @@ const Auth = () => {
             setIsLoading(false);
             return;
         }
+
+        // Persist login state
+        auth.signUp(formData.email, formData.password, isLogin ? (auth.user?.name || "Guest") : formData.name);
 
         // Mock success
         toast.success(isLogin ? 'Welcome back!' : 'Account created successfully!');

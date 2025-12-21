@@ -81,10 +81,10 @@ const Premium = () => {
                                 <div className="mb-8">
                                     <span className="text-gray-400 text-sm font-medium uppercase tracking-wider">Annual Pass</span>
                                     <div className="flex items-baseline gap-1 mt-2">
-                                        <span className="text-5xl lg:text-6xl font-bold font-display">₹499</span>
+                                        <span className="text-5xl lg:text-6xl font-bold font-display">₹599</span>
                                         <span className="text-gray-400 font-medium">/ year</span>
                                     </div>
-                                    <p className="text-gray-400 text-sm mt-3">Less than ₹42 per month</p>
+                                    <p className="text-gray-400 text-sm mt-3">Less than ₹50 per month</p>
                                 </div>
 
                                 <div className="space-y-4 mb-10">

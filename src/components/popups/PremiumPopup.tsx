@@ -84,7 +84,7 @@ const PremiumPopup = ({ isOpen, onClose, onBuyPremium, isSignedUp, onSignupRequi
                     <div className="px-8 pb-10">
                         <div className="text-center mb-6">
                             <div className="flex items-baseline justify-center gap-2">
-                                <span className="text-5xl font-bold text-white tracking-tight">₹499</span>
+                                <span className="text-5xl font-bold text-white tracking-tight">₹599</span>
                                 <span className="text-gray-400 font-medium">/ year</span>
                             </div>
                             <span className="inline-block mt-2 px-3 py-1 bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest rounded-full border border-primary/20">
