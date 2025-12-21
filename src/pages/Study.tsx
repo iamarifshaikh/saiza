@@ -1,7 +1,7 @@
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Link } from "react-router-dom";
-import { GraduationCap, BookOpen, ArrowRight, Sparkles } from "lucide-react";
+import { GraduationCap, BookOpen, ArrowRight, Sparkles, ChevronRight } from "lucide-react";
 
 const Study = () => {
     return (
@@ -34,37 +34,44 @@ const Study = () => {
 
                         {/* 1. Engineering Card (Brand Primary) */}
                         <Link to="/study/engineering" className="group relative">
-                            <div className="absolute -inset-1 bg-gradient-to-r from-primary to-cyan-300 rounded-[2.8rem] blur opacity-25 group-hover:opacity-75 transition duration-1000 group-hover:duration-200" />
-                            <div className="relative h-full bg-primary rounded-[2.5rem] p-8 lg:p-12 text-white overflow-hidden shadow-2xl transition-all duration-300 group-hover:-translate-y-2">
+                            <div className="absolute -inset-1 bg-gradient-to-r from-primary to-cyan-300 rounded-[2rem] lg:rounded-[2.8rem] blur opacity-25 group-hover:opacity-75 transition duration-1000 group-hover:duration-200" />
+                            <div className="relative h-full bg-primary rounded-[1.5rem] lg:rounded-[2.5rem] p-5 lg:p-12 text-white overflow-hidden shadow-2xl transition-all duration-300 md:group-hover:-translate-y-2 flex flex-row md:flex-col items-center md:items-start gap-5 md:gap-0">
 
-                                {/* Decorative Background Pattern */}
-                                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl translate-x-1/3 -translate-y-1/3" />
-                                <div className="absolute bottom-0 left-0 w-40 h-40 bg-black/10 rounded-full blur-2xl -translate-x-1/3 translate-y-1/3" />
-                                <svg className="absolute top-8 right-8 w-24 h-24 text-white/10 rotate-12" viewBox="0 0 24 24" fill="currentColor">
+                                {/* Decorative Background Pattern - Hidden on mobile */}
+                                <div className="hidden md:block absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl translate-x-1/3 -translate-y-1/3" />
+                                <div className="hidden md:block absolute bottom-0 left-0 w-40 h-40 bg-black/10 rounded-full blur-2xl -translate-x-1/3 translate-y-1/3" />
+                                <svg className="hidden md:block absolute top-8 right-8 w-24 h-24 text-white/10 rotate-12" viewBox="0 0 24 24" fill="currentColor">
                                     <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
                                 </svg>
 
-                                <div className="relative z-10 flex flex-col h-full">
-                                    <div className="flex justify-between items-start mb-12">
-                                        <div className="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/20 shadow-inner">
-                                            <GraduationCap size={40} className="text-white drop-shadow-md" />
+                                <div className="relative z-10 flex flex-row md:flex-col items-center md:items-start w-full gap-4 md:gap-0 h-full">
+                                    <div className="flex justify-between items-start md:mb-12 shrink-0 md:w-full">
+                                        <div className="w-14 h-14 lg:w-20 lg:h-20 rounded-xl lg:rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/20 shadow-inner">
+                                            <GraduationCap size={32} className="text-white drop-shadow-md lg:w-10 lg:h-10" />
                                         </div>
-                                        <div className="px-4 py-2 rounded-full bg-white/20 backdrop-blur-md border border-white/20 text-xs font-bold uppercase tracking-wider flex items-center gap-2">
+                                        <div className="hidden md:flex px-4 py-2 rounded-full bg-white/20 backdrop-blur-md border border-white/20 text-xs font-bold uppercase tracking-wider items-center gap-2">
                                             <Sparkles size={12} />
                                             Most Popular
                                         </div>
                                     </div>
 
-                                    <h2 className="font-display text-4xl lg:text-5xl font-bold mb-4">Engineering</h2>
-                                    <p className="text-white/80 text-lg mb-12 max-w-sm leading-relaxed">
-                                        Comprehensive resources for BE/B.Tech students across all major branches.
-                                    </p>
+                                    <div className="flex-grow">
+                                        <h2 className="font-display text-2xl lg:text-5xl font-bold mb-1 md:mb-4">Engineering</h2>
+                                        <p className="text-white/80 text-xs lg:text-lg mb-0 md:mb-12 max-w-sm leading-relaxed line-clamp-1 md:line-clamp-none">
+                                            Comprehensive resources for BE/B.Tech students.
+                                        </p>
+                                    </div>
 
-                                    <div className="mt-auto flex items-center gap-4 group/btn">
+                                    <div className="mt-auto hidden md:flex items-center gap-4 group/btn">
                                         <span className="font-bold text-xl group-hover/btn:underline decoration-2 underline-offset-4">Explore Degree</span>
                                         <div className="w-12 h-12 rounded-full bg-white text-primary flex items-center justify-center transition-transform group-hover/btn:translate-x-2">
                                             <ArrowRight size={24} strokeWidth={3} />
                                         </div>
+                                    </div>
+
+                                    {/* Mobile Arrow */}
+                                    <div className="flex md:hidden w-8 h-8 rounded-full bg-white/10 items-center justify-center shrink-0">
+                                        <ChevronRight size={18} className="text-white" />
                                     </div>
                                 </div>
                             </div>
@@ -72,37 +79,44 @@ const Study = () => {
 
                         {/* 2. Diploma Card (Dark Theme) */}
                         <Link to="/study/diploma" className="group relative">
-                            <div className="absolute -inset-1 bg-gradient-to-r from-gray-600 to-gray-400 rounded-[2.8rem] blur opacity-25 group-hover:opacity-75 transition duration-1000 group-hover:duration-200" />
-                            <div className="relative h-full bg-[#18181b] rounded-[2.5rem] p-8 lg:p-12 text-white overflow-hidden shadow-2xl transition-all duration-300 group-hover:-translate-y-2">
+                            <div className="absolute -inset-1 bg-gradient-to-r from-gray-600 to-gray-400 rounded-[2rem] lg:rounded-[2.8rem] blur opacity-25 group-hover:opacity-75 transition duration-1000 group-hover:duration-200" />
+                            <div className="relative h-full bg-[#18181b] rounded-[1.5rem] lg:rounded-[2.5rem] p-5 lg:p-12 text-white overflow-hidden shadow-2xl transition-all duration-300 md:group-hover:-translate-y-2 flex flex-row md:flex-col items-center md:items-start gap-5 md:gap-0">
 
-                                {/* Decorative Background Pattern */}
-                                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl translate-x-1/3 -translate-y-1/3" />
-                                <div className="absolute bottom-0 left-0 w-40 h-40 bg-primary/5 rounded-full blur-2xl -translate-x-1/3 translate-y-1/3" />
-                                <svg className="absolute top-8 right-8 w-24 h-24 text-white/5 -rotate-12" viewBox="0 0 24 24" fill="currentColor">
+                                {/* Decorative Background Pattern - Hidden on mobile */}
+                                <div className="hidden md:block absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl translate-x-1/3 -translate-y-1/3" />
+                                <div className="hidden md:block absolute bottom-0 left-0 w-40 h-40 bg-primary/5 rounded-full blur-2xl -translate-x-1/3 translate-y-1/3" />
+                                <svg className="hidden md:block absolute top-8 right-8 w-24 h-24 text-white/5 -rotate-12" viewBox="0 0 24 24" fill="currentColor">
                                     <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
                                     <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
                                 </svg>
 
-                                <div className="relative z-10 flex flex-col h-full">
-                                    <div className="flex justify-between items-start mb-12">
-                                        <div className="w-20 h-20 rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/10 shadow-inner group-hover:border-primary/50 transition-colors">
-                                            <BookOpen size={36} className="text-white group-hover:text-primary transition-colors" />
+                                <div className="relative z-10 flex flex-row md:flex-col items-center md:items-start w-full gap-4 md:gap-0 h-full">
+                                    <div className="flex justify-between items-start md:mb-12 shrink-0 md:w-full">
+                                        <div className="w-14 h-14 lg:w-20 lg:h-20 rounded-xl lg:rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/10 shadow-inner group-hover:border-primary/50 transition-colors">
+                                            <BookOpen size={28} className="text-white group-hover:text-primary transition-colors lg:w-9 lg:h-9" />
                                         </div>
-                                        <div className="px-4 py-2 rounded-full bg-white/5 border border-white/10 text-xs font-bold uppercase tracking-wider text-gray-400">
+                                        <div className="hidden md:flex px-4 py-2 rounded-full bg-white/5 border border-white/10 text-xs font-bold uppercase tracking-wider text-gray-400">
                                             Polytechnic
                                         </div>
                                     </div>
 
-                                    <h2 className="font-display text-4xl lg:text-5xl font-bold mb-4">Diploma</h2>
-                                    <p className="text-gray-400 text-lg mb-12 max-w-sm leading-relaxed">
-                                        Focused study materials for Diploma students to master technical concepts.
-                                    </p>
+                                    <div className="flex-grow">
+                                        <h2 className="font-display text-2xl lg:text-5xl font-bold mb-1 md:mb-4">Diploma</h2>
+                                        <p className="text-gray-400 text-xs lg:text-lg mb-0 md:mb-12 max-w-sm leading-relaxed line-clamp-1 md:line-clamp-none">
+                                            Focused study materials for Polytechnic students.
+                                        </p>
+                                    </div>
 
-                                    <div className="mt-auto flex items-center gap-4 group/btn">
+                                    <div className="mt-auto hidden md:flex items-center gap-4 group/btn">
                                         <span className="font-bold text-xl group-hover/btn:underline decoration-2 underline-offset-4 decoration-primary">Explore Diploma</span>
                                         <div className="w-12 h-12 rounded-full bg-white/10 text-white flex items-center justify-center transition-all group-hover/btn:translate-x-2 group-hover/btn:bg-primary">
                                             <ArrowRight size={24} strokeWidth={3} />
                                         </div>
+                                    </div>
+
+                                    {/* Mobile Arrow */}
+                                    <div className="flex md:hidden w-8 h-8 rounded-full bg-white/5 items-center justify-center shrink-0 border border-white/10">
+                                        <ChevronRight size={18} className="text-gray-400" />
                                     </div>
                                 </div>
                             </div>

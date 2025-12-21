@@ -109,27 +109,35 @@ const Domains = () => {
                                 className="group relative animate-fade-up"
                                 style={{ animationDelay: `${(index + 1) * 0.05}s` }}
                             >
-                                <div className="h-full bg-white rounded-[2rem] p-6 lg:p-8 shadow-sm border border-gray-100 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:border-primary/20 hover:-translate-y-1 relative overflow-hidden">
-                                    <div className={`w-14 h-14 rounded-2xl ${domain.bg} flex items-center justify-center mb-6 transition-transform group-hover:scale-110 duration-300`}>
-                                        <domain.icon size={28} className={domain.color} />
+                                <div className="h-full bg-white rounded-2xl lg:rounded-[2rem] p-4 lg:p-8 shadow-sm border border-gray-100 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:border-primary/20 hover:-translate-y-1 relative overflow-hidden flex flex-row md:flex-col items-center md:items-start gap-4 md:gap-0">
+                                    <div className={`w-12 h-12 lg:w-14 lg:h-14 rounded-xl lg:rounded-2xl ${domain.bg} flex items-center justify-center md:mb-6 shrink-0 transition-transform group-hover:scale-110 duration-300`}>
+                                        <domain.icon size={24} className={`${domain.color} lg:w-7 lg:h-7`} />
                                     </div>
 
-                                    <div className="mb-4">
-                                        <h3 className="font-display text-xl lg:text-2xl font-bold mb-2 text-gray-900 group-hover:text-primary transition-colors">
+                                    <div className="flex-grow md:mb-4">
+                                        <h3 className="font-display text-lg lg:text-2xl font-bold mb-1 md:mb-2 text-gray-900 group-hover:text-primary transition-colors">
                                             {domain.title}
                                         </h3>
-                                        <p className="text-gray-500 text-sm leading-relaxed">
+                                        <p className="text-gray-500 text-xs lg:text-sm leading-relaxed line-clamp-1 md:line-clamp-none">
                                             {domain.description}
                                         </p>
                                     </div>
 
-                                    <div className="flex items-center justify-between pt-6 mt-2 border-t border-gray-50">
+                                    <div className="hidden md:flex items-center justify-between pt-6 mt-2 border-t border-gray-50 w-full">
                                         <span className="inline-flex items-center px-3 py-1 rounded-full bg-gray-50 text-xs font-bold text-gray-600 border border-gray-100">
                                             {domain.subjects} Subjects
                                         </span>
                                         <div className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center transform translate-x-4 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">
                                             <ArrowRight size={14} />
                                         </div>
+                                    </div>
+
+                                    {/* Mobile Subject Count & Arrow */}
+                                    <div className="flex md:hidden items-center gap-2 shrink-0">
+                                        <span className="text-[10px] font-bold text-gray-400 bg-gray-50 px-2 py-1 rounded-lg">
+                                            {domain.subjects}
+                                        </span>
+                                        <ChevronRight size={16} className="text-gray-300" />
                                     </div>
                                 </div>
                             </Link>

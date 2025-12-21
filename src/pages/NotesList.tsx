@@ -135,43 +135,56 @@ const NotesList = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background font-sans">
+    <div className="min-h-screen bg-background font-sans relative overflow-hidden">
+      {/* Background Atmosphere */}
+      <div className="fixed inset-0 -z-10 bg-mesh opacity-[0.15] lg:opacity-40" />
+
+      {/* Animated Background Blobs - Subtler for mobile */}
+      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none opacity-40 lg:opacity-100">
+        <div className="absolute -top-[10%] -left-[10%] w-[70%] lg:w-[40%] h-[40%] bg-primary/5 lg:bg-primary/10 rounded-full blur-[80px] lg:blur-[120px] animate-pulse-glow" style={{ animationDelay: '0s' }} />
+        <div className="absolute top-[20%] -right-[5%] w-[60%] lg:w-[35%] h-[35%] bg-cyan-400/5 lg:bg-cyan-400/10 rounded-full blur-[60px] lg:blur-[100px] animate-pulse-glow" style={{ animationDelay: '2s' }} />
+      </div>
+
       <Navbar />
-      <main className="pt-32 lg:pt-40 pb-20 lg:pb-32 px-4 lg:px-8">
+      <main className="pt-24 lg:pt-40 pb-12 lg:pb-32 px-4 lg:px-8 relative z-10">
         <div className="container mx-auto max-w-5xl">
 
-          {/* Top Bar */}
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-12 animate-fade-in">
-            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <Link to={`/study/${courseType}/${domain}`} className="flex items-center gap-1 hover:text-primary transition-colors">
-                <span className="bg-gray-100 p-1.5 rounded-lg"><ChevronLeft size={16} /></span>
-                <span>Back to Subjects</span>
+          {/* Navigation & Title Section */}
+          <div className="space-y-4 lg:space-y-6 mb-8 lg:mb-12 animate-fade-in">
+            {/* Back Button */}
+            <div className="flex items-center text-xs lg:text-sm font-medium text-muted-foreground">
+              <Link to={`/study/${courseType}/${domain}`} className="flex items-center gap-1.5 hover:text-primary transition-colors group">
+                <span className="bg-white p-1.5 lg:p-2 rounded-xl shadow-sm border border-gray-100 group-hover:bg-primary/5 transition-colors">
+                  <ChevronLeft size={16} className="text-gray-400 group-hover:text-primary" />
+                </span>
+                <span className="font-bold">Back to Subjects</span>
               </Link>
             </div>
 
-            <div className="relative w-full md:w-80 group">
+            {/* Heading & Badge */}
+            <div className="space-y-1.5 lg:space-y-4">
+              <div className="inline-flex items-center gap-2 bg-blue-50/50 text-blue-600 px-2.5 py-1 rounded-full text-[10px] lg:text-xs font-bold uppercase tracking-wider border border-blue-100/50 backdrop-blur-sm">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+                {notes.length} Modules Available
+              </div>
+              <h1 className="font-display text-3xl lg:text-7xl font-black text-foreground tracking-tight leading-[1] lg:leading-[0.85] uppercase">
+                {subjectTitle}
+              </h1>
+              <p className="text-muted-foreground text-xs lg:text-xl max-w-2xl leading-relaxed font-medium">
+                Curated study materials for {domainName} {courseTitle}. Master the concepts with ease.
+              </p>
+            </div>
+
+            {/* Search Bar */}
+            <div className="relative w-full max-w-xl group pt-2 lg:pt-4">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors" size={18} />
               <Input
-                placeholder="Search topic..."
-                className="w-full h-12 pl-12 rounded-full bg-white border-gray-200 shadow-sm focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all font-medium"
+                placeholder="Search topic or keywords..."
+                className="w-full h-12 lg:h-14 pl-12 rounded-2xl lg:rounded-[1.25rem] bg-white border-gray-200 shadow-sm focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all font-medium text-sm lg:text-base border-2"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-          </div>
-
-          {/* Header */}
-          <div className="mb-12 animate-fade-up">
-            <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-4 border border-blue-100">
-              <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
-              {notes.length} Notes Available
-            </div>
-            <h1 className="font-display text-4xl lg:text-6xl font-bold text-foreground tracking-tight mb-4">
-              {subjectTitle}
-            </h1>
-            <p className="text-muted-foreground text-lg max-w-2xl">
-              Curated study materials for {domainName} {courseTitle}. Master the concepts with ease.
-            </p>
           </div>
 
           {/* Notes List */}
@@ -186,46 +199,47 @@ const NotesList = () => {
                   className="group relative animate-fade-up"
                   style={{ animationDelay: `${index * 0.05}s` }}
                 >
-                  <div className={`bg-white rounded-[1.5rem] p-5 sm:p-6 border border-gray-100 flex flex-col sm:flex-row items-start sm:items-center gap-6 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:border-primary/20 ${note.isPremium && !auth.user?.isPremium ? 'opacity-90' : ''}`}>
+                  <div className={`bg-white rounded-2xl lg:rounded-[1.5rem] p-4 lg:p-6 border border-gray-100 flex flex-col sm:flex-row items-start sm:items-center gap-4 lg:gap-6 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:border-primary/20 ${note.isPremium && !auth.user?.isPremium ? 'opacity-90' : ''}`}>
 
                     {/* Icon */}
-                    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-105 shadow-sm ${note.isPremium ? 'bg-amber-50 text-amber-500' : 'bg-red-50 text-red-500'}`}>
-                      {note.isPremium ? <Crown size={28} /> : <FileText size={28} />}
+                    <div className={`w-12 h-12 lg:w-16 lg:h-16 rounded-xl lg:rounded-2xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-105 shadow-sm ${note.isPremium ? 'bg-amber-50 text-amber-500' : 'bg-red-50 text-red-500'}`}>
+                      {note.isPremium ? <Crown size={20} className="lg:w-7 lg:h-7" /> : <FileText size={20} className="lg:w-7 lg:h-7" />}
                     </div>
 
                     {/* Content */}
-                    <div className="flex-grow min-w-0 space-y-2">
-                      <div className="flex items-center gap-3">
-                        <h3 className="font-display text-lg sm:text-xl font-bold text-gray-900 group-hover:text-primary transition-colors truncate">
+                    <div className="flex-grow min-w-0 space-y-1 lg:space-y-2">
+                      <div className="flex items-center gap-2 lg:gap-3">
+                        <h3 className="font-display text-base lg:text-xl font-bold text-gray-900 group-hover:text-primary transition-colors truncate">
                           {note.title}
                         </h3>
                         {note.isPremium && (
-                          <span className="bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">
+                          <span className="bg-amber-100 text-amber-700 text-[8px] lg:text-[10px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wide shrink-0">
                             Premium
                           </span>
                         )}
                       </div>
-                      <p className="text-gray-500 text-sm line-clamp-1">{note.description}</p>
+                      <p className="text-gray-500 text-xs lg:text-sm line-clamp-1 leading-relaxed">{note.description}</p>
 
-                      <div className="flex items-center gap-4 text-xs font-medium text-gray-400 pt-1">
-                        <span className="flex items-center gap-1.5 bg-gray-50 px-2 py-1 rounded-md">
-                          <FileText size={12} /> {note.pages} Pages
+                      <div className="flex flex-wrap items-center gap-2 lg:gap-3 text-[10px] lg:text-xs font-bold text-gray-400 pt-1">
+                        <span className="flex items-center gap-1.5 bg-gray-50/80 px-2 py-1 rounded-lg border border-gray-100">
+                          <FileText size={12} className="text-primary/70" /> {note.pages} pages
                         </span>
-                        <span className="flex items-center gap-1.5 bg-gray-50 px-2 py-1 rounded-md">
-                          <Clock size={12} /> {note.readTime} read
+                        <span className="flex items-center gap-1.5 bg-gray-50/80 px-2 py-1 rounded-lg border border-gray-100">
+                          <Clock size={12} className="text-primary/70" /> {note.readTime}
                         </span>
-                        <span className="hidden sm:inline-block">•</span>
-                        <span className="hidden sm:inline-block">Updated {note.date}</span>
+                        <span className="bg-gray-50/80 px-2 py-1 rounded-lg border border-gray-100 text-gray-400">
+                          {note.date}
+                        </span>
                       </div>
                     </div>
 
                     {/* Action */}
-                    <div className="mt-4 sm:mt-0 w-full sm:w-auto">
-                      <Button variant="outline" className={`w-full sm:w-32 rounded-xl font-bold h-12 border-gray-200 group-hover:bg-primary group-hover:text-white group-hover:border-primary transition-all ${note.isPremium && !auth.user?.isPremium ? 'bg-gray-50 text-gray-400 group-hover:bg-gray-100 group-hover:text-gray-500 group-hover:border-gray-200 cursor-not-allowed' : ''}`}>
+                    <div className="mt-4 sm:mt-0 w-full sm:w-auto shrink-0">
+                      <Button variant="outline" className={`w-full sm:w-32 rounded-xl font-bold h-10 lg:h-12 border-gray-100 group-hover:bg-primary group-hover:text-white group-hover:border-primary transition-all text-xs lg:text-base ${note.isPremium && !auth.user?.isPremium ? 'bg-gray-50 text-gray-400 group-hover:bg-gray-100 group-hover:text-gray-500 group-hover:border-gray-200 cursor-not-allowed' : ''}`}>
                         {note.isPremium && !auth.user?.isPremium ? (
-                          <><Lock size={16} className="mr-2" /> Locked</>
+                          <><Lock size={14} className="mr-1.5 lg:w-4 lg:h-4" /> Locked</>
                         ) : (
-                          <>Read Note <ChevronRight size={16} className="ml-1" /></>
+                          <>Read Note <ChevronRight size={14} className="ml-1 lg:w-4 lg:h-4" /></>
                         )}
                       </Button>
                     </div>
