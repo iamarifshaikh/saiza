@@ -1,147 +1,275 @@
 import { Link, useParams } from 'react-router-dom';
+import { useState } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import { ArrowLeft, ArrowRight, Lock, FileText, Crown } from 'lucide-react';
+import { ChevronRight, Crown, Search, FileText, Clock, ChevronLeft, Lock } from 'lucide-react';
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
+import PremiumPopup from "@/components/popups/PremiumPopup";
+import SignupPopup from "@/components/popups/SignupPopup";
+import UserInfoPopup from "@/components/popups/UserInfoPopup";
+import { toast } from "sonner";
 
-// Sample notes for Computer Engineering > DSA
-const notesData: Record<string, { id: string; title: string; description: string; isPremium: boolean; pages: number }[]> = {
+// Sample notes data
+const notesData: Record<string, { id: string; title: string; description: string; isPremium: boolean; pages: number; readTime: string; date: string }[]> = {
   dsa: [
-    { 
-      id: 'arrays-basics', 
-      title: 'Arrays - Basics & Operations', 
-      description: 'Complete guide to arrays, memory allocation, and common operations',
+    {
+      id: 'arrays',
+      title: 'Arrays & Strings Masterclass',
+      description: 'Comprehensive guide to array manipulation, string algorithms, and sliding window techniques.',
       isPremium: false,
-      pages: 24
+      pages: 45,
+      readTime: '30 min',
+      date: 'Aug 12'
     },
-    { 
-      id: 'linked-lists', 
-      title: 'Linked Lists Complete Guide', 
-      description: 'Singly, doubly, and circular linked lists with implementations',
+    {
+      id: 'linked-lists',
+      title: 'Linked List Implementation',
+      description: 'Deep dive into Singly, Doubly, and Circular linked lists with complete code examples.',
+      isPremium: false,
+      pages: 32,
+      readTime: '25 min',
+      date: 'Aug 14'
+    },
+    {
+      id: 'trees',
+      title: 'Binary Trees & BST',
+      description: 'Visualizations and traversals (Inorder, Preorder, Postorder) for binary trees.',
       isPremium: true,
-      pages: 32
+      pages: 56,
+      readTime: '45 min',
+      date: 'Aug 20'
+    },
+    {
+      id: 'graphs',
+      title: 'Graph Algorithms (BFS/DFS)',
+      description: 'Shortest path algorithms, adjacency matrix vs list, and real-world applications.',
+      isPremium: true,
+      pages: 62,
+      readTime: '55 min',
+      date: 'Aug 25'
     },
   ],
-  os: [
-    { 
-      id: 'process-management', 
-      title: 'Process Management', 
-      description: 'Processes, threads, scheduling algorithms',
+  // Fallback for other subjects
+  default: [
+    {
+      id: 'intro',
+      title: 'Introduction & Basics',
+      description: 'Fundamental concepts and definitions to get started with the subject.',
       isPremium: false,
-      pages: 28
+      pages: 12,
+      readTime: '10 min',
+      date: 'Sep 01'
     },
-    { 
-      id: 'memory-management', 
-      title: 'Memory Management', 
-      description: 'Virtual memory, paging, segmentation',
+    {
+      id: 'advanced',
+      title: 'Advanced Concepts Part 1',
+      description: 'Exploring complex topics and theoretical frameworks in depth.',
       isPremium: true,
-      pages: 36
+      pages: 34,
+      readTime: '35 min',
+      date: 'Sep 05'
     },
-  ],
+  ]
 };
 
 const subjectNames: Record<string, string> = {
-  dsa: 'Data Structures & Algorithms',
+  dsa: 'Data Structures',
   os: 'Operating Systems',
-  dbms: 'Database Management Systems',
+  dbms: 'DBMS',
   cn: 'Computer Networks',
-  se: 'Software Engineering',
-  ai: 'Artificial Intelligence',
+  se: 'Software Eng.',
+  ai: 'AI & ML',
 };
 
 const NotesList = () => {
   const { courseType, domain, subject } = useParams();
-  const notes = notesData[subject || ''] || notesData['dsa'];
+  const rawNotes = notesData[subject || ''] || notesData['default'];
+  // Duplicate for demo density
+  const notes = [...rawNotes, ...rawNotes];
+
   const subjectTitle = subjectNames[subject || ''] || 'Subject Notes';
   const courseTitle = courseType === 'diploma' ? 'Diploma' : 'Engineering';
+  const domainName = domain ? (domain.charAt(0).toUpperCase() + domain.slice(1)) : 'Subject';
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const auth = useAuth();
+  const [showPremiumPopup, setShowPremiumPopup] = useState(false);
+  const [showSignupPopup, setShowSignupPopup] = useState(false);
+  const [showUserInfoPopup, setShowUserInfoPopup] = useState(false);
+
+  const filteredNotes = notes.filter(note =>
+    note.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    note.description.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const handleNoteClick = (e: React.MouseEvent, isPremium: boolean) => {
+    if (isPremium && !auth.user?.isPremium) {
+      e.preventDefault();
+      setShowPremiumPopup(true);
+    }
+  };
+
+  const handleBuyPremium = () => {
+    auth.upgradeToPremium();
+    setShowPremiumPopup(false);
+    toast.success('Welcome to Premium! Enjoy unlimited access.');
+  };
+
+  const handleSignup = (email: string, password: string, name: string, semester?: string, branch?: string) => {
+    const success = auth.signUp(email, password, name);
+    if (semester || branch) {
+      console.log("Additional info:", semester, branch);
+    }
+    if (success) {
+      setShowSignupPopup(false);
+      setShowUserInfoPopup(true);
+    }
+    return success;
+  };
+
+  const handleCompleteInfo = (college: string, semester: string) => {
+    auth.completeUserInfo(college, semester);
+    setShowUserInfoPopup(false);
+  };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background font-sans">
       <Navbar />
-      
-      <main className="pt-24 lg:pt-32 pb-16 lg:pb-24">
-        <div className="container mx-auto px-4 lg:px-8">
-          {/* Breadcrumb */}
-          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-8 animate-fade-up flex-wrap">
-            <Link to="/study" className="hover:text-foreground transition-colors">Study</Link>
-            <span>/</span>
-            <Link to={`/study/${courseType}`} className="hover:text-foreground transition-colors">{courseTitle}</Link>
-            <span>/</span>
-            <Link to={`/study/${courseType}/${domain}`} className="hover:text-foreground transition-colors">Computer Engineering</Link>
-            <span>/</span>
-            <span className="text-foreground">{subjectTitle}</span>
+      <main className="pt-32 lg:pt-40 pb-20 lg:pb-32 px-4 lg:px-8">
+        <div className="container mx-auto max-w-5xl">
+
+          {/* Top Bar */}
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-12 animate-fade-in">
+            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <Link to={`/study/${courseType}/${domain}`} className="flex items-center gap-1 hover:text-primary transition-colors">
+                <span className="bg-gray-100 p-1.5 rounded-lg"><ChevronLeft size={16} /></span>
+                <span>Back to Subjects</span>
+              </Link>
+            </div>
+
+            <div className="relative w-full md:w-80 group">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors" size={18} />
+              <Input
+                placeholder="Search topic..."
+                className="w-full h-12 pl-12 rounded-full bg-white border-gray-200 shadow-sm focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all font-medium"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
           </div>
 
-          {/* Back Link */}
-          <Link 
-            to={`/study/${courseType}/${domain}`}
-            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-8 animate-fade-up"
-          >
-            <ArrowLeft size={18} />
-            <span className="text-sm font-medium">Back to Subjects</span>
-          </Link>
-
           {/* Header */}
-          <div className="max-w-2xl mb-12">
-            <h1 className="text-3xl lg:text-4xl font-semibold mb-4 animate-fade-up stagger-1">
+          <div className="mb-12 animate-fade-up">
+            <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-4 border border-blue-100">
+              <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+              {notes.length} Notes Available
+            </div>
+            <h1 className="font-display text-4xl lg:text-6xl font-bold text-foreground tracking-tight mb-4">
               {subjectTitle}
             </h1>
-            <p className="text-muted-foreground text-lg animate-fade-up stagger-2">
-              Select a note to start studying. Premium notes are marked with a crown.
+            <p className="text-muted-foreground text-lg max-w-2xl">
+              Curated study materials for {domainName} {courseTitle}. Master the concepts with ease.
             </p>
           </div>
 
-          {/* Notes Grid */}
-          <div className="grid gap-4 md:gap-6">
-            {notes.map((note, index) => (
-              <Link
-                key={note.id}
-                to={`/study/${courseType}/${domain}/${subject}/${note.id}`}
-                className="group animate-fade-up"
-                style={{ animationDelay: `${(index + 3) * 0.1}s` }}
-              >
-                <div className="card-premium p-4 sm:p-6 flex items-start sm:items-center gap-3 sm:gap-6 hover:shadow-medium">
-                  {/* Icon */}
-                  <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl flex items-center justify-center flex-shrink-0 ${note.isPremium ? 'bg-gradient-to-br from-primary/20 to-primary/5' : 'bg-muted'}`}>
-                    {note.isPremium ? (
-                      <Lock className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
-                    ) : (
-                      <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-foreground/60" />
-                    )}
-                  </div>
+          {/* Notes List */}
+          <div className="grid gap-4">
+            {filteredNotes.length > 0 ? (
+              filteredNotes.map((note, index) => (
+                <Link
+                  key={index}
+                  to={`/study/${courseType}/${domain}/${subject}/${note.id}`}
+                  state={{ note }} // Pass note data to viewer
+                  onClick={(e) => handleNoteClick(e, note.isPremium)}
+                  className="group relative animate-fade-up"
+                  style={{ animationDelay: `${index * 0.05}s` }}
+                >
+                  <div className={`bg-white rounded-[1.5rem] p-5 sm:p-6 border border-gray-100 flex flex-col sm:flex-row items-start sm:items-center gap-6 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:border-primary/20 ${note.isPremium && !auth.user?.isPremium ? 'opacity-90' : ''}`}>
 
-                  {/* Content */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
-                      <h3 className="text-base sm:text-lg font-semibold line-clamp-2 sm:truncate">
-                        {note.title}
-                      </h3>
-                      {note.isPremium && (
-                        <span className="inline-flex items-center gap-1 bg-primary/10 text-primary px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0 w-fit">
-                          <Crown size={12} />
-                          Premium
-                        </span>
-                      )}
+                    {/* Icon */}
+                    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-105 shadow-sm ${note.isPremium ? 'bg-amber-50 text-amber-500' : 'bg-red-50 text-red-500'}`}>
+                      {note.isPremium ? <Crown size={28} /> : <FileText size={28} />}
                     </div>
-                    <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 sm:truncate">
-                      {note.description}
-                    </p>
-                    <p className="text-xs text-muted-foreground/60 mt-1 sm:mt-2">
-                      {note.pages} pages
-                    </p>
-                  </div>
 
-                  {/* Arrow - hidden on mobile */}
-                  <div className="hidden sm:flex w-10 h-10 rounded-xl bg-muted/50 items-center justify-center flex-shrink-0 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                    <ArrowRight size={18} />
+                    {/* Content */}
+                    <div className="flex-grow min-w-0 space-y-2">
+                      <div className="flex items-center gap-3">
+                        <h3 className="font-display text-lg sm:text-xl font-bold text-gray-900 group-hover:text-primary transition-colors truncate">
+                          {note.title}
+                        </h3>
+                        {note.isPremium && (
+                          <span className="bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">
+                            Premium
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-gray-500 text-sm line-clamp-1">{note.description}</p>
+
+                      <div className="flex items-center gap-4 text-xs font-medium text-gray-400 pt-1">
+                        <span className="flex items-center gap-1.5 bg-gray-50 px-2 py-1 rounded-md">
+                          <FileText size={12} /> {note.pages} Pages
+                        </span>
+                        <span className="flex items-center gap-1.5 bg-gray-50 px-2 py-1 rounded-md">
+                          <Clock size={12} /> {note.readTime} read
+                        </span>
+                        <span className="hidden sm:inline-block">•</span>
+                        <span className="hidden sm:inline-block">Updated {note.date}</span>
+                      </div>
+                    </div>
+
+                    {/* Action */}
+                    <div className="mt-4 sm:mt-0 w-full sm:w-auto">
+                      <Button variant="outline" className={`w-full sm:w-32 rounded-xl font-bold h-12 border-gray-200 group-hover:bg-primary group-hover:text-white group-hover:border-primary transition-all ${note.isPremium && !auth.user?.isPremium ? 'bg-gray-50 text-gray-400 group-hover:bg-gray-100 group-hover:text-gray-500 group-hover:border-gray-200 cursor-not-allowed' : ''}`}>
+                        {note.isPremium && !auth.user?.isPremium ? (
+                          <><Lock size={16} className="mr-2" /> Locked</>
+                        ) : (
+                          <>Read Note <ChevronRight size={16} className="ml-1" /></>
+                        )}
+                      </Button>
+                    </div>
                   </div>
+                </Link>
+              ))
+            ) : (
+              <div className="text-center py-24 bg-white rounded-[2.5rem] border border-dashed border-gray-200">
+                <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Search className="text-gray-400" size={24} />
                 </div>
-              </Link>
-            ))}
+                <h3 className="text-lg font-bold text-gray-900 mb-1">No notes found</h3>
+                <p className="text-gray-500">Try adjusting your search terms</p>
+              </div>
+            )}
           </div>
         </div>
       </main>
-
       <Footer />
+
+      {/* Popups */}
+      <PremiumPopup
+        isOpen={showPremiumPopup}
+        onClose={() => setShowPremiumPopup(false)}
+        onBuyPremium={handleBuyPremium}
+        isSignedUp={auth.isSignedUp}
+        onSignupRequired={() => {
+          setShowPremiumPopup(false);
+          setShowSignupPopup(true);
+        }}
+      />
+
+      <SignupPopup
+        isOpen={showSignupPopup}
+        onClose={() => setShowSignupPopup(false)}
+        onSignup={handleSignup}
+        canClose={true}
+        message="Sign up to purchase premium"
+      />
+
+      <UserInfoPopup
+        isOpen={showUserInfoPopup}
+        onComplete={handleCompleteInfo}
+      />
     </div>
   );
 };

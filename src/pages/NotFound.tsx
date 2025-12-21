@@ -1,7 +1,7 @@
 import { useLocation, Link } from "react-router-dom";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Home, ArrowLeft } from "lucide-react";
+import { Home, ArrowLeft, FileQuestion } from "lucide-react";
 
 const NotFound = () => {
     const location = useLocation();
@@ -11,56 +11,55 @@ const NotFound = () => {
     }, [location.pathname]);
 
     return (
-        <div className="min-h-screen bg-background flex items-center justify-center relative overflow-hidden">
-            {/* Background decorative elements */}
-            <div className="absolute inset-0 overflow-hidden">
-                <div className="absolute -top-40 -right-40 w-80 h-80 bg-lime/20 rounded-full blur-3xl animate-pulse" />
-                <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-mint/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-coral/10 rounded-full blur-3xl" />
+        <div className="min-h-screen bg-[#fafafa] flex items-center justify-center relative overflow-hidden font-sans">
+
+            {/* Abstract Background Shapes */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px] -translate-x-1/2 -translate-y-1/2" />
+                <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-purple-500/5 rounded-full blur-[100px] translate-x-1/2 translate-y-1/2" />
+
+                {/* Grid Pattern Overlay */}
+                <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
             </div>
 
-            <div className="relative z-10 text-center px-4 max-w-lg">
-                {/* 404 Display */}
-                <div className="relative mb-8">
-                    <h1 className="font-display text-[180px] sm:text-[220px] font-bold leading-none bg-gradient-to-br from-foreground via-foreground/80 to-foreground/40 bg-clip-text text-transparent">
-                        404
-                    </h1>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="w-32 h-32 rounded-full bg-lime/30 animate-ping" style={{ animationDuration: '2s' }} />
-                    </div>
+            <div className="relative z-10 text-center px-4 max-w-2xl mx-auto">
+                <div className="mb-2 inline-flex items-center gap-2 px-3 py-1 bg-red-50 border border-red-100 text-red-500 rounded-full text-xs font-bold uppercase tracking-wider animate-fade-in">
+                    <FileQuestion size={14} />
+                    <span>Error 404</span>
                 </div>
 
-                {/* Message */}
-                <h2 className="font-display text-2xl sm:text-3xl font-bold mb-4 animate-fade-up">
-                    Page Not Found
+                <h1 className="font-display text-8xl md:text-[150px] font-black leading-none mb-6 relative select-none">
+                    <span className="text-gray-200 absolute top-1 left-1 -z-10 blur-[1px]">Out of Syllabus</span>
+                    <span className="bg-gradient-to-br from-gray-900 to-gray-600 bg-clip-text text-transparent">
+                        Lost?
+                    </span>
+                </h1>
+
+                <h2 className="font-display text-3xl md:text-5xl font-bold mb-6 text-foreground tracking-tight">
+                    This page is <br className="hidden md:block" /> <span className="text-primary decoration-wavy underline decoration-primary/30 underline-offset-4">Out of Syllabus</span>
                 </h2>
-                <p className="text-muted-foreground text-lg mb-8 animate-fade-up" style={{ animationDelay: '0.1s' }}>
-                    The page you're looking for doesn't exist or has been moved.
+
+                <p className="text-muted-foreground text-lg md:text-xl mb-10 max-w-lg mx-auto leading-relaxed">
+                    The topic you are looking for hasn't been covered yet, or it might have been removed from the curriculum.
                 </p>
 
-                {/* Actions */}
-                <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-up" style={{ animationDelay: '0.2s' }}>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                     <Link to="/">
-                        <Button variant="lime" size="lg" className="gap-2 w-full sm:w-auto">
-                            <Home size={18} />
-                            Go Home
+                        <Button size="xl" className="rounded-full bg-black text-white hover:bg-gray-800 h-14 px-8 font-bold shadow-xl shadow-black/10 transition-transform hover:-translate-y-1">
+                            <Home size={20} className="mr-2" />
+                            Back to Campus
                         </Button>
                     </Link>
                     <Button
-                        variant="outline"
-                        size="lg"
-                        className="gap-2"
+                        variant="ghost"
+                        size="xl"
+                        className="rounded-full h-14 px-8 font-bold text-gray-500 hover:text-foreground hover:bg-gray-100"
                         onClick={() => window.history.back()}
                     >
-                        <ArrowLeft size={18} />
+                        <ArrowLeft size={20} className="mr-2" />
                         Go Back
                     </Button>
                 </div>
-
-                {/* Decorative floating elements */}
-                <div className="absolute -top-20 left-10 w-4 h-4 bg-lime rounded-full animate-float" />
-                <div className="absolute top-20 right-10 w-3 h-3 bg-coral rounded-full animate-float" style={{ animationDelay: '0.5s' }} />
-                <div className="absolute bottom-20 left-20 w-2 h-2 bg-mint rounded-full animate-float" style={{ animationDelay: '1s' }} />
             </div>
         </div>
     );

@@ -15,6 +15,9 @@ import NotesViewer from "./pages/NotesViewer";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
+import Auth from "./pages/Auth";
+import CustomCursor from "@/components/ui/CustomCursor";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -22,9 +25,12 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <CustomCursor />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/login" element={<Auth />} />
           <Route path="/study" element={<Study />} />
           <Route path="/study/:courseType" element={<Domains />} />
           <Route path="/study/:courseType/:domain" element={<Subjects />} />

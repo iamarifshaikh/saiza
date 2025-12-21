@@ -2,54 +2,56 @@ import { useState } from "react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Link, useParams } from "react-router-dom";
-import { ArrowRight, Lock, FileText, Crown } from "lucide-react";
+import { ArrowRight, Lock, BookOpen, Crown, Search, ChevronRight, Hash, Sparkles } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import PremiumPopup from "@/components/popups/PremiumPopup";
 import SignupPopup from "@/components/popups/SignupPopup";
 import UserInfoPopup from "@/components/popups/UserInfoPopup";
 import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
 
-const subjectsByDomain: Record<string, { id: string; title: string; isPremium: boolean }[]> = {
+// Subject Data Mock
+const subjectsByDomain: Record<string, { id: string; title: string; isPremium: boolean; code: string }[]> = {
   computer: [
-    { id: "dsa", title: "Data Structures & Algorithms", isPremium: false },
-    { id: "os", title: "Operating Systems", isPremium: false },
-    { id: "dbms", title: "Database Management Systems", isPremium: true },
-    { id: "cn", title: "Computer Networks", isPremium: false },
-    { id: "se", title: "Software Engineering", isPremium: true },
-    { id: "ai", title: "Artificial Intelligence", isPremium: true },
+    { id: "dsa", title: "Data Structures", isPremium: false, code: "CSC301" },
+    { id: "os", title: "Operating Systems", isPremium: false, code: "CSC302" },
+    { id: "dbms", title: "Database Mgmt Systems", isPremium: true, code: "CSC303" },
+    { id: "cn", title: "Computer Networks", isPremium: false, code: "CSC304" },
+    { id: "se", title: "Software Engineering", isPremium: true, code: "CSC305" },
+    { id: "ai", title: "Artificial Intelligence", isPremium: true, code: "CSC306" },
   ],
   it: [
-    { id: "web", title: "Web Development", isPremium: false },
-    { id: "cloud", title: "Cloud Computing", isPremium: true },
-    { id: "security", title: "Cyber Security", isPremium: false },
-    { id: "mobile", title: "Mobile App Development", isPremium: true },
+    { id: "web", title: "Web Development", isPremium: false, code: "ITC301" },
+    { id: "cloud", title: "Cloud Computing", isPremium: true, code: "ITC302" },
+    { id: "security", title: "Cyber Security", isPremium: false, code: "ITC303" },
+    { id: "mobile", title: "Mobile App Dev", isPremium: true, code: "ITC304" },
   ],
   mechanical: [
-    { id: "thermo", title: "Thermodynamics", isPremium: false },
-    { id: "manufacturing", title: "Manufacturing Processes", isPremium: false },
-    { id: "design", title: "Machine Design", isPremium: true },
-    { id: "fluid", title: "Fluid Mechanics", isPremium: false },
+    { id: "thermo", title: "Thermodynamics", isPremium: false, code: "MEC301" },
+    { id: "manufacturing", title: "Manufacturing Processes", isPremium: false, code: "MEC302" },
+    { id: "design", title: "Machine Design", isPremium: true, code: "MEC303" },
+    { id: "fluid", title: "Fluid Mechanics", isPremium: false, code: "MEC304" },
   ],
   extc: [
-    { id: "digital", title: "Digital Electronics", isPremium: false },
-    { id: "signals", title: "Signals & Systems", isPremium: true },
-    { id: "comm", title: "Communication Systems", isPremium: false },
-    { id: "microprocessor", title: "Microprocessors", isPremium: true },
+    { id: "digital", title: "Digital Electronics", isPremium: false, code: "EXT301" },
+    { id: "signals", title: "Signals & Systems", isPremium: true, code: "EXT302" },
+    { id: "comm", title: "Communication Systems", isPremium: false, code: "EXT303" },
+    { id: "microprocessor", title: "Microprocessors", isPremium: true, code: "EXT304" },
   ],
   electrical: [
-    { id: "power", title: "Power Systems", isPremium: false },
-    { id: "machines", title: "Electrical Machines", isPremium: true },
-    { id: "control", title: "Control Systems", isPremium: false },
+    { id: "power", title: "Power Systems", isPremium: false, code: "ELC301" },
+    { id: "machines", title: "Electrical Machines", isPremium: true, code: "ELC302" },
+    { id: "control", title: "Control Systems", isPremium: false, code: "ELC303" },
   ],
   chemical: [
-    { id: "process", title: "Process Engineering", isPremium: false },
-    { id: "reactions", title: "Chemical Reactions", isPremium: true },
-    { id: "heat", title: "Heat Transfer", isPremium: false },
+    { id: "process", title: "Process Engineering", isPremium: false, code: "CHE301" },
+    { id: "reactions", title: "Chemical Reactions", isPremium: true, code: "CHE302" },
+    { id: "heat", title: "Heat Transfer", isPremium: false, code: "CHE303" },
   ],
   civil: [
-    { id: "structures", title: "Structural Analysis", isPremium: false },
-    { id: "construction", title: "Construction Management", isPremium: true },
-    { id: "surveying", title: "Surveying", isPremium: false },
+    { id: "structures", title: "Structural Analysis", isPremium: false, code: "CIV301" },
+    { id: "construction", title: "Construction Mgmt", isPremium: true, code: "CIV302" },
+    { id: "surveying", title: "Surveying", isPremium: false, code: "CIV303" },
   ],
 };
 
@@ -65,14 +67,20 @@ const domainNames: Record<string, string> = {
 
 const Subjects = () => {
   const { courseType, domain } = useParams();
-  const subjects = subjectsByDomain[domain || ""] || [];
+  const allSubjects = subjectsByDomain[domain || ""] || [];
   const domainTitle = domainNames[domain || ""] || "Unknown Domain";
   const courseTitle = courseType === "diploma" ? "Diploma" : "Engineering";
-  
+
+  const [searchTerm, setSearchTerm] = useState("");
   const auth = useAuth();
   const [showPremiumPopup, setShowPremiumPopup] = useState(false);
   const [showSignupPopup, setShowSignupPopup] = useState(false);
   const [showUserInfoPopup, setShowUserInfoPopup] = useState(false);
+
+  const filteredSubjects = allSubjects.filter(sub =>
+    sub.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    sub.code.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const handleSubjectClick = (e: React.MouseEvent, subject: { id: string; isPremium: boolean }) => {
     if (subject.isPremium && !auth.user?.isPremium) {
@@ -87,8 +95,11 @@ const Subjects = () => {
     toast.success('Welcome to Premium! Enjoy unlimited access.');
   };
 
-  const handleSignup = (email: string, password: string, name: string) => {
+  const handleSignup = (email: string, password: string, name: string, semester?: string, branch?: string) => {
     const success = auth.signUp(email, password, name);
+    if (semester || branch) {
+      console.log("Additional info:", semester, branch);
+    }
     if (success) {
       setShowSignupPopup(false);
       setShowUserInfoPopup(true);
@@ -102,63 +113,91 @@ const Subjects = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background font-sans">
       <Navbar />
-      <main className="pt-24 lg:pt-32 pb-16 lg:pb-24">
-        <div className="container mx-auto px-4 lg:px-8">
+      <main className="pt-32 lg:pt-40 pb-20 lg:pb-32 px-4 lg:px-8">
+        <div className="container mx-auto max-w-7xl">
           {/* Breadcrumb */}
-          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-8 animate-fade-up flex-wrap">
-            <Link to="/study" className="hover:text-foreground transition-colors">Study</Link>
-            <span>/</span>
-            <Link to={`/study/${courseType}`} className="hover:text-foreground transition-colors">{courseTitle}</Link>
-            <span>/</span>
-            <span className="text-foreground">{domainTitle}</span>
+          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-10 animate-fade-in flex-wrap">
+            <Link to="/" className="hover:text-primary transition-colors">Home</Link>
+            <ChevronRight size={14} />
+            <Link to="/study" className="hover:text-primary transition-colors">Study</Link>
+            <ChevronRight size={14} />
+            <Link to={`/study/${courseType}`} className="hover:text-primary transition-colors">{courseTitle}</Link>
+            <ChevronRight size={14} />
+            <span className="text-foreground font-bold">{domainTitle}</span>
           </div>
 
           {/* Header */}
-          <div className="max-w-2xl mb-12">
-            <h1 className="font-display text-4xl lg:text-5xl font-bold mb-4 animate-fade-up">
-              {domainTitle}
-            </h1>
-            <p className="text-muted-foreground text-lg animate-fade-up stagger-1">
-              Select a subject to access study notes and materials.
-            </p>
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-8 mb-16 animate-fade-up">
+            <div className="text-center lg:text-left">
+              <span className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-bold tracking-widest border border-primary/20 mb-4 uppercase">
+                {courseTitle} Streams
+              </span>
+              <h1 className="font-display text-4xl lg:text-6xl font-bold text-foreground tracking-tight">
+                {domainTitle}
+              </h1>
+            </div>
+
+            <div className="relative w-full max-w-md">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+              <Input
+                placeholder="Search for subjects..."
+                className="w-full h-14 pl-12 rounded-full bg-white border-gray-200 shadow-sm focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all text-base"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
           </div>
 
+          {/* Empty State */}
+          {filteredSubjects.length === 0 && (
+            <div className="text-center py-20 bg-gray-50 rounded-[2rem]">
+              <Sparkles className="mx-auto text-gray-300 mb-4" size={48} />
+              <p className="text-xl text-gray-500 font-medium">No subjects found matching "{searchTerm}"</p>
+              <button
+                onClick={() => setSearchTerm("")}
+                className="mt-4 text-primary font-bold hover:underline"
+              >
+                Clear search
+              </button>
+            </div>
+          )}
+
           {/* Subjects Grid */}
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {subjects.map((subject, index) => (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-8">
+            {filteredSubjects.map((subject, index) => (
               <Link
                 key={subject.id}
                 to={`/study/${courseType}/${domain}/${subject.id}`}
                 onClick={(e) => handleSubjectClick(e, subject)}
-                className="group animate-fade-up"
-                style={{ animationDelay: `${(index + 2) * 0.05}s` }}
+                className="group relative animate-fade-up"
+                style={{ animationDelay: `${(index + 1) * 0.05}s` }}
               >
-                <div className={`bg-card rounded-2xl p-6 h-full flex flex-col transition-all duration-300 hover:shadow-medium hover:-translate-y-1 border border-border shadow-soft ${subject.isPremium && !auth.user?.isPremium ? "relative overflow-hidden opacity-80" : ""}`}>
-                  {subject.isPremium && (
-                    <div className="absolute top-4 right-4 bg-gradient-to-r from-primary to-mint text-secondary rounded-full px-3 py-1 text-xs font-semibold flex items-center gap-1">
-                      <Crown size={12} />
-                      Premium
+                <div className={`h-full bg-white rounded-[2rem] p-6 lg:p-8 border border-gray-100 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:border-primary/20 hover:-translate-y-1 relative overflow-hidden flex flex-col`}>
+
+                  {/* Subject Code Logic */}
+                  <div className="flex justify-between items-start mb-6">
+                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${subject.isPremium ? 'bg-amber-50 text-amber-500' : 'bg-blue-50 text-blue-500'}`}>
+                      {subject.isPremium ? <Crown size={24} /> : <BookOpen size={24} />}
                     </div>
-                  )}
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${subject.isPremium ? 'bg-primary/20' : 'bg-lime/20'}`}>
-                      {subject.isPremium && !auth.user?.isPremium ? (
-                        <Lock size={24} className="text-primary" />
-                      ) : (
-                        <FileText size={24} className="text-foreground" />
-                      )}
-                    </div>
+                    <span className="bg-gray-50 text-gray-400 text-xs font-bold px-3 py-1 rounded-full border border-gray-100 flex items-center gap-1">
+                      <Hash size={12} /> {subject.code}
+                    </span>
                   </div>
-                  <h3 className="font-display text-lg font-bold mb-2">
+
+                  <h3 className="font-display text-xl font-bold mb-2 text-gray-800 group-hover:text-primary transition-colors line-clamp-2">
                     {subject.title}
                   </h3>
-                  <div className="flex items-center justify-between mt-auto pt-4">
-                    <span className="text-sm text-muted-foreground">
-                      {subject.isPremium && !auth.user?.isPremium ? 'Unlock with Premium' : 'View Notes'}
+
+                  <div className="mt-auto pt-6 flex items-center justify-between border-t border-gray-50">
+                    <span className={`text-xs font-bold uppercase tracking-wider ${subject.isPremium ? 'text-amber-500' : 'text-gray-400 group-hover:text-primary transition-colors'}`}>
+                      {subject.isPremium && !auth.user?.isPremium ? 'Premium Content' : 'View Notes'}
                     </span>
-                    <ArrowRight size={18} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${subject.isPremium && !auth.user?.isPremium ? 'bg-gray-100 text-gray-400' : 'bg-black text-white group-hover:translate-x-1'}`}>
+                      {subject.isPremium && !auth.user?.isPremium ? <Lock size={14} /> : <ArrowRight size={14} />}
+                    </div>
                   </div>
                 </div>
               </Link>
@@ -169,7 +208,7 @@ const Subjects = () => {
       <Footer />
 
       {/* Popups */}
-      <PremiumPopup 
+      <PremiumPopup
         isOpen={showPremiumPopup}
         onClose={() => setShowPremiumPopup(false)}
         onBuyPremium={handleBuyPremium}

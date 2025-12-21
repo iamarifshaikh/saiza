@@ -39,7 +39,7 @@ const ExpertsSection = () => {
                             Our Experts
                         </h2>
                         <p className="text-foreground/70 text-sm max-w-sm">
-                            SAIZA brings you curated content from experienced educators who understand the needs of Diploma & Engineering students.
+                            Adroits brings you curated content from experienced educators who understand the needs of Diploma & Engineering students.
                         </p>
 
                         {/* Decorative Wave at bottom */}

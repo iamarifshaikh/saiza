@@ -43,7 +43,7 @@ interface AuthState {
   myWordsPlaylists: MyWordsPlaylist[];
 }
 
-const AUTH_STORAGE_KEY = 'saiza_auth_state';
+const AUTH_STORAGE_KEY = 'adroits_auth_state';
 
 const getInitialState = (): AuthState => {
   const defaultState: AuthState = {

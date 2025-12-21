@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/tabs";
 
 // Admin credentials (in production, this should be server-side)
-const ADMIN_PASSWORD = 'saiza2024admin';
+const ADMIN_PASSWORD = 'adroits2024admin';
 
 interface Domain {
   id: string;
@@ -189,7 +189,7 @@ const Admin = () => {
                 <Shield size={20} className="text-primary" />
               </div>
               <div>
-                <h1 className="font-semibold">SAIZA Admin</h1>
+                <h1 className="font-semibold">Adroits Admin</h1>
                 <p className="text-xs text-muted-foreground">Content Management</p>
               </div>
             </div>
