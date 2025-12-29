@@ -2,18 +2,15 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Link } from "react-router-dom";
 import { GraduationCap, BookOpen, ArrowRight, Sparkles, ChevronRight } from "lucide-react";
+import BackgroundAtmosphere from "@/components/ui/BackgroundAtmosphere";
 
 const Study = () => {
     return (
-        <div className="min-h-screen bg-background flex flex-col">
+        <div className="min-h-screen bg-transparent font-sans relative overflow-hidden flex flex-col">
+            <BackgroundAtmosphere />
             <Navbar />
 
-            <main className="flex-grow pt-32 lg:pt-40 pb-20 lg:pb-32 px-4 lg:px-8 relative overflow-hidden">
-                {/* Background Blobs */}
-                <div className="absolute top-0 center w-full h-full max-w-[1200px] mx-auto pointer-events-none">
-                    <div className="absolute top-20 left-10 w-96 h-96 bg-primary/5 rounded-full blur-3xl -z-10 animate-pulse" />
-                    <div className="absolute bottom-20 right-10 w-96 h-96 bg-orange-50 rounded-full blur-3xl -z-10" />
-                </div>
+            <main className="flex-grow pt-32 lg:pt-40 pb-20 lg:pb-32 px-4 lg:px-8 relative">
 
                 <div className="container mx-auto">
                     {/* Header */}
@@ -102,7 +99,7 @@ const Study = () => {
 
                                     <div className="flex-grow">
                                         <h2 className="font-display text-2xl lg:text-5xl font-bold mb-1 md:mb-4">Diploma</h2>
-                                        <p className="text-gray-400 text-xs lg:text-lg mb-0 md:mb-12 max-w-sm leading-relaxed line-clamp-1 md:line-clamp-none">
+                                        <p className="text-muted-foreground/80 text-xs lg:text-lg mb-0 md:mb-12 max-w-sm leading-relaxed line-clamp-1 md:line-clamp-none font-medium">
                                             Focused study materials for Polytechnic students.
                                         </p>
                                     </div>

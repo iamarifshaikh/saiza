@@ -1,6 +1,7 @@
 import * as AccordionPrimitive from "@radix-ui/react-accordion";
 import { Plus, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
+import Reveal from "@/components/animations/Reveal";
 
 const FAQSection = () => {
     return (
@@ -10,22 +11,24 @@ const FAQSection = () => {
 
             <div className="container mx-auto px-4 lg:px-8">
                 {/* Header */}
-                <div className="text-center mb-16 lg:mb-24 animate-fade-up">
-                    <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-[10px] font-black tracking-[0.2em] border border-primary/20 uppercase mb-8">
-                        <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                        Common Queries
-                    </span>
-                    <h2 className="font-display text-5xl lg:text-[4.5rem] font-black mb-8 leading-[0.9] tracking-tighter text-foreground">
-                        Your Questions, <br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-cyan-500">Answered</span>
-                    </h2>
-                    <p className="text-muted-foreground text-xl font-medium max-w-2xl mx-auto opacity-60">
-                        Explore the answers to frequently asked questions about our premium engineering notes platform.
-                    </p>
-                </div>
+                <Reveal animation="reveal-fade" delay={0.1}>
+                    <div className="text-center mb-16 lg:mb-24">
+                        <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-[10px] font-black tracking-[0.2em] border border-primary/20 uppercase mb-8">
+                            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                            Common Queries
+                        </span>
+                        <h2 className="font-display text-5xl lg:text-[4.5rem] font-black mb-8 leading-[0.9] tracking-tighter text-foreground">
+                            Your Questions, <br />
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-cyan-500">Answered</span>
+                        </h2>
+                        <p className="text-muted-foreground text-xl font-medium max-w-2xl mx-auto opacity-60">
+                            Explore the answers to frequently asked questions about our premium engineering notes platform.
+                        </p>
+                    </div>
+                </Reveal>
 
                 {/* Accordion */}
-                <div className="w-full max-w-4xl mx-auto animate-fade-up">
+                <div className="w-full max-w-4xl mx-auto">
                     <AccordionPrimitive.Root type="single" collapsible className="space-y-6">
                         {[
                             {
@@ -54,34 +57,38 @@ const FAQSection = () => {
                                 answer: "We strive for high quality, but if you face issues with our premium content, please contact our support team within 24 hours of purchase for assistance. Refund policies vary by plan."
                             }
                         ].map((item, index) => (
-                            <AccordionPrimitive.Item
+                            <Reveal
                                 key={item.id}
-                                value={item.id}
-                                className={cn(
-                                    "glass-card rounded-[2.5rem] px-8 lg:px-12 py-2 border-white/40 transition-all duration-500 hover:border-primary/30",
-                                    "data-[state=open]:bg-white/60 data-[state=open]:shadow-2xl data-[state=open]:shadow-primary/5"
-                                )}
-                                style={{ animationDelay: `${index * 0.1}s` }}
+                                animation="reveal-fade"
+                                delay={index * 0.1}
                             >
-                                <AccordionPrimitive.Header className="flex">
-                                    <AccordionPrimitive.Trigger className="flex flex-1 items-center justify-between py-8 text-2xl lg:text-3xl font-black font-display text-left tracking-tight group [&[data-state=open]>div>div]:bg-primary [&[data-state=open]>div>div]:text-white">
-                                        <span className="group-data-[state=open]:text-primary transition-colors duration-300">
-                                            {item.question}
-                                        </span>
-                                        <div className="relative shrink-0 ml-6">
-                                            <div className="w-12 h-12 rounded-full border border-gray-100 flex items-center justify-center transition-all duration-500 group-hover:border-primary/30">
-                                                <Plus className="h-6 w-6 text-gray-400 group-data-[state=open]:hidden transition-transform duration-300" />
-                                                <Minus className="h-6 w-6 text-white group-data-[state=closed]:hidden transition-transform duration-300" />
+                                <AccordionPrimitive.Item
+                                    value={item.id}
+                                    className={cn(
+                                        "glass-card rounded-[2.5rem] px-8 lg:px-12 py-2 border-white/40 dark:border-white/10 dark:bg-white/5 transition-all duration-500 hover:border-primary/30",
+                                        "data-[state=open]:bg-white/60 dark:data-[state=open]:bg-white/10 data-[state=open]:shadow-2xl data-[state=open]:shadow-primary/5"
+                                    )}
+                                >
+                                    <AccordionPrimitive.Header className="flex">
+                                        <AccordionPrimitive.Trigger className="flex flex-1 items-center justify-between py-8 text-2xl lg:text-3xl font-black font-display text-left tracking-tight group [&[data-state=open]>div>div]:bg-primary [&[data-state=open]>div>div]:text-white">
+                                            <span className="group-data-[state=open]:text-primary transition-colors duration-300 text-foreground">
+                                                {item.question}
+                                            </span>
+                                            <div className="relative shrink-0 ml-6">
+                                                <div className="w-12 h-12 rounded-full border border-border flex items-center justify-center transition-all duration-500 group-hover:border-primary/30">
+                                                    <Plus className="h-6 w-6 text-muted-foreground group-data-[state=open]:hidden transition-transform duration-300" />
+                                                    <Minus className="h-6 w-6 text-white group-data-[state=closed]:hidden transition-transform duration-300" />
+                                                </div>
                                             </div>
+                                        </AccordionPrimitive.Trigger>
+                                    </AccordionPrimitive.Header>
+                                    <AccordionPrimitive.Content className="overflow-hidden text-lg lg:text-xl text-muted-foreground font-medium data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
+                                        <div className="pb-10 pt-2 leading-relaxed opacity-80 border-t border-white/20 dark:border-white/10 mt-2">
+                                            {item.answer}
                                         </div>
-                                    </AccordionPrimitive.Trigger>
-                                </AccordionPrimitive.Header>
-                                <AccordionPrimitive.Content className="overflow-hidden text-lg lg:text-xl text-muted-foreground font-medium data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
-                                    <div className="pb-10 pt-2 leading-relaxed opacity-80 border-t border-white/20 mt-2">
-                                        {item.answer}
-                                    </div>
-                                </AccordionPrimitive.Content>
-                            </AccordionPrimitive.Item>
+                                    </AccordionPrimitive.Content>
+                                </AccordionPrimitive.Item>
+                            </Reveal>
                         ))}
                     </AccordionPrimitive.Root>
                 </div>

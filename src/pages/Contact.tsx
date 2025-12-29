@@ -1,5 +1,6 @@
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import BackgroundAtmosphere from "@/components/ui/BackgroundAtmosphere";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,12 +22,10 @@ const Contact = () => {
     };
 
     return (
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen bg-transparent font-sans relative overflow-hidden">
+            <BackgroundAtmosphere />
             <Navbar />
-            <main className="relative pt-32 lg:pt-40 pb-20 lg:pb-32 overflow-hidden">
-                {/* Decorative Blobs */}
-                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-3xl -z-10 translate-x-1/2 -translate-y-1/2" />
-                <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-orange-50 rounded-full blur-3xl -z-10 -translate-x-1/2 translate-y-1/2" />
+            <main className="relative pt-32 lg:pt-40 pb-20 lg:pb-32">
 
                 <div className="container mx-auto px-4 lg:px-8">
                     {/* Header */}
@@ -45,11 +44,11 @@ const Contact = () => {
                     <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 max-w-7xl mx-auto items-start">
                         {/* Left Column: Contact Form */}
                         <div className="lg:col-span-7 animate-fade-up">
-                            <div className="bg-white rounded-[2.5rem] p-8 lg:p-12 shadow-xl shadow-gray-200/50 border border-gray-100 relative overflow-hidden">
+                            <div className="glass-card rounded-[2.5rem] p-8 lg:p-12 shadow-2xl relative overflow-hidden">
                                 <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-primary to-primary/60" />
 
-                                <h3 className="font-display text-3xl font-bold mb-2">Send us a message</h3>
-                                <p className="text-muted-foreground mb-10">We usually respond within 24 hours.</p>
+                                <h3 className="font-display text-3xl font-bold mb-2 text-foreground">Send us a message</h3>
+                                <p className="text-muted-foreground mb-10 font-medium">We usually respond within 24 hours.</p>
 
                                 <form onSubmit={handleSubmit} className="space-y-6">
                                     <div className="grid md:grid-cols-2 gap-6">
@@ -63,7 +62,7 @@ const Contact = () => {
                                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                                 placeholder="John Doe"
                                                 required
-                                                className="rounded-2xl h-14 bg-gray-50 border-transparent focus:bg-white focus:border-primary/20 focus:ring-4 focus:ring-primary/10 transition-all text-base px-5"
+                                                className="rounded-2xl h-14 bg-card border-border focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all text-base px-5 text-foreground font-medium"
                                             />
                                         </div>
                                         <div className="space-y-2">
@@ -77,7 +76,7 @@ const Contact = () => {
                                                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                                 placeholder="john@example.com"
                                                 required
-                                                className="rounded-2xl h-14 bg-gray-50 border-transparent focus:bg-white focus:border-primary/20 focus:ring-4 focus:ring-primary/10 transition-all text-base px-5"
+                                                className="rounded-2xl h-14 bg-card border-border focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all text-base px-5 text-foreground font-medium"
                                             />
                                         </div>
                                     </div>
@@ -93,13 +92,13 @@ const Contact = () => {
                                             placeholder="Tell us how we can help..."
                                             required
                                             rows={6}
-                                            className="rounded-2xl resize-none bg-gray-50 border-transparent focus:bg-white focus:border-primary/20 focus:ring-4 focus:ring-primary/10 transition-all text-base p-5"
+                                            className="rounded-2xl resize-none bg-card border-border focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all text-base p-5 text-foreground font-medium"
                                         />
                                     </div>
 
                                     <Button
                                         type="submit"
-                                        className="w-full h-14 rounded-full bg-black text-white hover:bg-black/80 text-base font-bold tracking-wide uppercase transition-all shadow-lg hover:shadow-xl mt-4"
+                                        className="w-full h-14 rounded-full bg-primary text-white hover:bg-primary/90 text-base font-bold tracking-widest uppercase transition-all shadow-lg shadow-primary/20 mt-4 active:scale-95"
                                     >
                                         Send Message
                                     </Button>
@@ -109,16 +108,15 @@ const Contact = () => {
 
                         {/* Right Column: Contact Info Cards */}
                         <div className="lg:col-span-5 space-y-6 animate-fade-up stagger-1">
-                            {/* Dark/Black Info Card (Replaced bright primary) */}
-                            <div className="bg-[#18181b] text-white rounded-[2.5rem] p-8 lg:p-10 shadow-2xl relative overflow-hidden group">
-                                <div className="absolute -top-24 -right-24 w-60 h-60 bg-primary/20 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-700" />
-                                <div className="absolute -bottom-24 -left-24 w-60 h-60 bg-primary/10 rounded-full blur-3xl" />
+                            <div className="glass-card text-white rounded-[2.5rem] p-8 lg:p-10 shadow-2xl relative overflow-hidden group">
+                                <div className="absolute -top-24 -right-24 w-60 h-60 bg-primary/20 rounded-full blur-[100px] group-hover:scale-110 transition-transform duration-700" />
+                                <div className="absolute -bottom-24 -left-24 w-60 h-60 bg-primary/10 rounded-full blur-[100px]" />
 
                                 <h3 className="font-display text-2xl font-bold mb-8 relative z-10">Contact Information</h3>
 
                                 <div className="space-y-8 relative z-10">
                                     <div className="flex items-start gap-5">
-                                        <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center shrink-0 backdrop-blur-sm border border-white/10 group-hover:border-primary/50 transition-colors">
+                                        <div className="w-12 h-12 rounded-2xl bg-muted/50 flex items-center justify-center shrink-0 border border-border group-hover:border-primary/50 transition-colors">
                                             <Mail size={22} className="text-primary" />
                                         </div>
                                         <div>
@@ -128,7 +126,7 @@ const Contact = () => {
                                     </div>
 
                                     <div className="flex items-start gap-5">
-                                        <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center shrink-0 backdrop-blur-sm border border-white/10 group-hover:border-primary/50 transition-colors">
+                                        <div className="w-12 h-12 rounded-2xl bg-muted/50 flex items-center justify-center shrink-0 border border-border group-hover:border-primary/50 transition-colors">
                                             <Phone size={22} className="text-primary" />
                                         </div>
                                         <div>
@@ -138,7 +136,7 @@ const Contact = () => {
                                     </div>
 
                                     <div className="flex items-start gap-5">
-                                        <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center shrink-0 backdrop-blur-sm border border-white/10 group-hover:border-primary/50 transition-colors">
+                                        <div className="w-12 h-12 rounded-2xl bg-muted/50 flex items-center justify-center shrink-0 border border-border group-hover:border-primary/50 transition-colors">
                                             <MapPin size={22} className="text-primary" />
                                         </div>
                                         <div>
@@ -152,8 +150,8 @@ const Contact = () => {
                             </div>
 
                             {/* Socials Card */}
-                            <div className="bg-white rounded-[2.5rem] p-8 shadow-lg shadow-gray-200/50 border border-gray-100">
-                                <h3 className="font-display text-xl font-bold mb-6">Connect With Us</h3>
+                            <div className="glass-card rounded-[2.5rem] p-8 shadow-2xl">
+                                <h3 className="font-display text-xl font-bold mb-6 text-foreground">Connect With Us</h3>
                                 <div className="grid grid-cols-2 gap-4">
                                     {/* WhatsApp */}
                                     <a

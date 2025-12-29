@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
+import { useTheme } from "@/hooks/useTheme";
 
 const Preloader = ({ onComplete }: { onComplete: () => void }) => {
     const [loading, setLoading] = useState(true);
     const [exitAnimation, setExitAnimation] = useState(false);
+    const { theme } = useTheme();
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -19,33 +21,58 @@ const Preloader = ({ onComplete }: { onComplete: () => void }) => {
 
     if (!loading) return null;
 
+    const isDark = theme === "dark";
+
     return (
         <div
             className={cn(
-                "fixed inset-0 z-[99999] flex items-center justify-center bg-[#020617] transition-all duration-1000 ease-in-out overflow-hidden",
+                "fixed inset-0 z-[99999] flex items-center justify-center transition-all duration-1000 ease-in-out overflow-hidden",
+                isDark ? "bg-[#010309]" : "bg-[#F8FAFC]",
                 exitAnimation ? "opacity-0 scale-110 blur-2xl pointer-events-none" : "opacity-100 scale-100"
             )}
         >
             {/* Deep Atmospheric Layered Mesh */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-primary/20 rounded-full blur-[140px] animate-pulse-glow" style={{ animationDuration: '4s' }} />
-                <div className="absolute bottom-[-15%] right-[-10%] w-[55%] h-[55%] bg-indigo-500/20 rounded-full blur-[120px] animate-pulse-glow" style={{ animationDuration: '5s', animationDelay: '1s' }} />
-                <div className="absolute top-[20%] right-[10%] w-[40%] h-[40%] bg-cyan-400/15 rounded-full blur-[100px] animate-pulse-glow" style={{ animationDuration: '6s', animationDelay: '2s' }} />
-                <div className="absolute bottom-[20%] left-[10%] w-[35%] h-[35%] bg-blue-600/10 rounded-full blur-[130px] animate-pulse-glow" style={{ animationDuration: '7s', animationDelay: '1.5s' }} />
+                <div className={cn(
+                    "absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full blur-[140px] animate-pulse-glow",
+                    isDark ? "bg-primary/20" : "bg-primary/10"
+                )} style={{ animationDuration: '4s' }} />
+                <div className={cn(
+                    "absolute bottom-[-15%] right-[-10%] w-[55%] h-[55%] rounded-full blur-[120px] animate-pulse-glow",
+                    isDark ? "bg-indigo-500/20" : "bg-indigo-500/10"
+                )} style={{ animationDuration: '5s', animationDelay: '1s' }} />
+                <div className={cn(
+                    "absolute top-[20%] right-[10%] w-[40%] h-[40%] rounded-full blur-[100px] animate-pulse-glow",
+                    isDark ? "bg-cyan-400/15" : "bg-cyan-400/10"
+                )} style={{ animationDuration: '6s', animationDelay: '2s' }} />
             </div>
 
             {/* Center Stage Content */}
             <div className="relative flex flex-col items-center z-10">
                 {/* Neon Logo Container */}
                 <div className="relative mb-12 group">
-                    <div className="absolute inset-[-10px] bg-primary/30 rounded-3xl blur-2xl animate-pulse" />
-                    <div className="absolute inset-[-4px] bg-white/10 rounded-3xl blur-md" />
+                    <div className={cn(
+                        "absolute inset-[-10px] rounded-3xl blur-2xl animate-pulse",
+                        isDark ? "bg-primary/30" : "bg-primary/10"
+                    )} />
+                    <div className={cn(
+                        "absolute inset-[-4px] rounded-3xl blur-md",
+                        isDark ? "bg-white/10" : "bg-black/5"
+                    )} />
 
-                    <div className="relative w-32 h-32 flex items-center justify-center bg-white/5 backdrop-blur-2xl border border-white/20 rounded-[2.5rem] shadow-[0_0_50px_rgba(var(--primary),0.3)] animate-scale-up-down">
+                    <div className={cn(
+                        "relative w-32 h-32 flex items-center justify-center backdrop-blur-2xl border rounded-[2.5rem] animate-scale-up-down transition-all duration-700",
+                        isDark
+                            ? "bg-white/5 border-white/20 shadow-[0_0_50px_rgba(var(--primary),0.3)]"
+                            : "bg-black/5 border-black/5 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.05)]"
+                    )}>
                         <img
                             src="/adroits-logo.png"
                             alt="Logo"
-                            className="w-20 h-20 object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]"
+                            className={cn(
+                                "w-20 h-20 object-contain transition-all duration-700",
+                                isDark ? "drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]" : "drop-shadow-[0_4px_10px_rgba(0,0,0,0.1)]"
+                            )}
                         />
                     </div>
                 </div>
@@ -53,16 +80,28 @@ const Preloader = ({ onComplete }: { onComplete: () => void }) => {
                 {/* Typography & Tech Loading Bar */}
                 <div className="flex flex-col items-center gap-6">
                     <div className="flex flex-col items-center gap-1">
-                        <h1 className="text-4xl font-black tracking-[0.4em] text-white uppercase ml-[0.4em] animate-fade-in-up">
+                        <h1 className={cn(
+                            "text-4xl font-black tracking-[0.4em] uppercase ml-[0.4em] animate-fade-in-up transition-colors duration-700",
+                            isDark ? "text-white" : "text-slate-900"
+                        )}>
                             ADROITS
                         </h1>
-                        <p className="text-primary/60 text-xs font-bold tracking-[0.4em] uppercase ml-[0.4em] animate-pulse">
+                        <p className={cn(
+                            "text-xs font-bold tracking-[0.4em] uppercase ml-[0.4em] animate-pulse transition-colors duration-700",
+                            isDark ? "text-primary/60" : "text-primary/80"
+                        )}>
                             Ultimate Engineering Notes
                         </p>
                     </div>
 
-                    <div className="relative w-48 h-[2px] bg-white/5 rounded-full overflow-hidden">
-                        <div className="absolute inset-0 bg-primary/20" />
+                    <div className={cn(
+                        "relative w-48 h-[2px] rounded-full overflow-hidden transition-colors duration-700",
+                        isDark ? "bg-white/5" : "bg-black/5"
+                    )}>
+                        <div className={cn(
+                            "absolute inset-0",
+                            isDark ? "bg-primary/20" : "bg-primary/10"
+                        )} />
                         <div className="h-full bg-gradient-to-r from-transparent via-primary to-transparent w-full animate-loading-bar" />
                     </div>
                 </div>
@@ -71,7 +110,10 @@ const Preloader = ({ onComplete }: { onComplete: () => void }) => {
             {/* Shutter Reveal Transition Effect */}
             {exitAnimation && (
                 <div className="absolute inset-0 z-20 pointer-events-none">
-                    <div className="absolute inset-0 bg-black/40 backdrop-blur-3xl animate-fade-out" />
+                    <div className={cn(
+                        "absolute inset-0 backdrop-blur-3xl animate-fade-out",
+                        isDark ? "bg-black/40" : "bg-white/40"
+                    )} />
                 </div>
             )}
         </div>

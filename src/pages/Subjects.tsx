@@ -10,6 +10,7 @@ import UserInfoPopup from "@/components/popups/UserInfoPopup";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import BackgroundAtmosphere from "@/components/ui/BackgroundAtmosphere";
 
 // Subject Data Mock
 const subjectsByDomain: Record<string, { id: string; title: string; isPremium: boolean; code: string }[]> = {
@@ -114,7 +115,8 @@ const Subjects = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background font-sans">
+    <div className="min-h-screen bg-transparent font-sans relative overflow-hidden">
+      <BackgroundAtmosphere />
       <Navbar />
       <main className="pt-32 lg:pt-40 pb-20 lg:pb-32 px-4 lg:px-8">
         <div className="container mx-auto max-w-7xl">
@@ -141,10 +143,10 @@ const Subjects = () => {
             </div>
 
             <div className="relative w-full max-w-md">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/40" size={20} />
               <Input
                 placeholder="Search for subjects..."
-                className="w-full h-14 pl-12 rounded-full bg-white border-gray-200 shadow-sm focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all text-base"
+                className="w-full h-14 pl-12 rounded-full bg-card border-border shadow-sm focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all text-base text-foreground font-medium"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -153,9 +155,9 @@ const Subjects = () => {
 
           {/* Empty State */}
           {filteredSubjects.length === 0 && (
-            <div className="text-center py-20 bg-gray-50 rounded-[2rem]">
-              <Sparkles className="mx-auto text-gray-300 mb-4" size={48} />
-              <p className="text-xl text-gray-500 font-medium">No subjects found matching "{searchTerm}"</p>
+            <div className="text-center py-20 bg-card rounded-[2.5rem] border border-dashed border-border">
+              <Sparkles className="mx-auto text-muted-foreground/20 mb-4" size={48} strokeWidth={1.5} />
+              <p className="text-xl text-muted-foreground font-bold opacity-60">No subjects found matching "{searchTerm}"</p>
               <button
                 onClick={() => setSearchTerm("")}
                 className="mt-4 text-primary font-bold hover:underline"
@@ -177,21 +179,21 @@ const Subjects = () => {
               >
                 {/* Desktop Card View / Mobile List Item */}
                 <div className={`
-                    h-full bg-white border border-gray-100 transition-all duration-300 relative overflow-hidden flex
-                    rounded-[1.5rem] sm:rounded-[2rem] p-4 sm:p-6 lg:p-8 
+                    h-full glass-card transition-all duration-300 relative overflow-hidden flex
+                    rounded-[1.5rem] sm:rounded-[2.5rem] p-4 sm:p-6 lg:p-8 
                     flex-row sm:flex-col items-center sm:items-stretch gap-4 sm:gap-0
-                    hover:shadow-xl hover:shadow-primary/5 hover:border-primary/20 hover:-translate-y-1
+                    hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-1
                   `}>
 
                   {/* Icon/Badge - Side in mobile, Top in desktop */}
                   <div className="flex sm:justify-between items-center sm:items-start sm:mb-6 shrink-0">
                     <div className={cn(
-                      "w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl flex items-center justify-center transition-colors",
-                      subject.isPremium ? 'bg-amber-50 text-amber-500' : 'bg-blue-50 text-blue-500 group-hover:bg-primary/10 group-hover:text-primary'
+                      "w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl flex items-center justify-center transition-colors shadow-inner",
+                      subject.isPremium ? 'bg-amber-500/10 text-amber-500' : 'bg-primary/10 text-primary'
                     )}>
                       {subject.isPremium ? <Crown size={20} className="sm:w-6 sm:h-6" /> : <BookOpen size={20} className="sm:w-6 sm:h-6" />}
                     </div>
-                    <span className="hidden sm:flex bg-gray-50 text-gray-400 text-[10px] font-bold px-2 py-1 rounded-full border border-gray-100 items-center gap-1 uppercase tracking-tighter">
+                    <span className="hidden sm:flex bg-muted/50 text-muted-foreground/60 text-[10px] font-bold px-2 py-1 rounded-full border border-border items-center gap-1 uppercase tracking-widest">
                       <Hash size={10} /> {subject.code}
                     </span>
                   </div>
@@ -202,7 +204,7 @@ const Subjects = () => {
                       <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{subject.code}</span>
                     </div>
 
-                    <h3 className="font-display text-base sm:text-xl font-bold text-gray-800 group-hover:text-primary transition-colors sm:line-clamp-2 sm:mb-2">
+                    <h3 className="font-display text-base sm:text-xl font-bold text-foreground group-hover:text-primary transition-colors sm:line-clamp-2 sm:mb-2">
                       {subject.title}
                     </h3>
 
@@ -213,19 +215,19 @@ const Subjects = () => {
                   </div>
 
                   {/* Action block - Hidden text on mobile, full width on desktop */}
-                  <div className="sm:mt-auto sm:pt-6 flex items-center justify-end sm:justify-between sm:border-t sm:border-gray-50 shrink-0">
+                  <div className="sm:mt-auto sm:pt-6 flex items-center justify-end sm:justify-between sm:border-t sm:border-border shrink-0">
                     <span className={cn(
-                      "hidden sm:inline text-[10px] font-bold uppercase tracking-wider",
-                      subject.isPremium ? 'text-amber-500' : 'text-gray-400 group-hover:text-primary transition-colors'
+                      "hidden sm:inline text-[10px] font-bold uppercase tracking-widest opacity-60",
+                      subject.isPremium ? 'text-amber-500' : 'text-muted-foreground group-hover:text-primary transition-colors'
                     )}>
                       {subject.isPremium && !auth.user?.isPremium ? 'Locked' : 'View Notes'}
                     </span>
 
                     <div className={cn(
-                      "w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300",
+                      "w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg",
                       subject.isPremium && !auth.user?.isPremium
-                        ? 'bg-gray-100 text-gray-400'
-                        : 'bg-black text-white group-hover:translate-x-1 sm:group-hover:translate-x-1.5'
+                        ? 'bg-muted/50 text-muted-foreground/40'
+                        : 'bg-primary text-white group-hover:translate-x-1 sm:group-hover:translate-x-1.5 shadow-primary/20'
                     )}>
                       {subject.isPremium && !auth.user?.isPremium ? <Lock size={14} /> : <ArrowRight size={14} />}
                     </div>

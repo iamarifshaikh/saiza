@@ -4,6 +4,8 @@ import { Menu, X, User, ChevronRight } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import ThemeToggle from "@/components/ui/ThemeToggle";
+import { useTheme } from "@/hooks/useTheme";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -14,6 +16,8 @@ const Navbar = () => {
 
   const location = useLocation();
   const auth = useAuth();
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
 
   // Handle scroll effect
   useEffect(() => {
@@ -59,7 +63,10 @@ const Navbar = () => {
       className={cn(
         "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
         scrolled
-          ? "bg-white/90 backdrop-blur-md border-b border-black/5 py-4 shadow-sm"
+          ? cn(
+            "backdrop-blur-md border-b py-4 shadow-sm",
+            isDark ? "bg-[#0c111d]/90 border-white/5 shadow-black/20" : "bg-white/90 border-black/5"
+          )
           : "bg-transparent py-6"
       )}
     >
@@ -107,6 +114,8 @@ const Navbar = () => {
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center gap-6">
+            <ThemeToggle />
+
             <Link to="/premium">
               <Button size="lg" className="rounded-xl bg-foreground hover:bg-primary text-background font-black px-7 transition-all hover:-translate-y-0.5 shadow-lg shadow-black/5 h-11">
                 Premium
@@ -115,7 +124,10 @@ const Navbar = () => {
 
             {auth.isSignedUp ? (
               <Link to="/profile">
-                <button className="w-11 h-11 rounded-xl bg-black/5 border border-black/5 flex items-center justify-center hover:bg-black/10 transition-all group">
+                <button className={cn(
+                  "w-11 h-11 rounded-xl flex items-center justify-center transition-all group",
+                  isDark ? "bg-white/5 border border-white/5 hover:bg-white/10" : "bg-black/5 border border-black/5 hover:bg-black/10"
+                )}>
                   <User size={20} className="text-foreground group-hover:text-primary transition-colors" />
                 </button>
               </Link>
@@ -130,15 +142,22 @@ const Navbar = () => {
 
           {/* Mobile Menu Button */}
           <div className="md:hidden flex items-center gap-3">
+            <ThemeToggle className="scale-90" />
             {auth.isSignedUp && (
               <Link to="/profile">
-                <button className="w-10 h-10 rounded-xl bg-black/5 flex items-center justify-center">
+                <button className={cn(
+                  "w-10 h-10 rounded-xl flex items-center justify-center transition-all",
+                  isDark ? "bg-white/5" : "bg-black/5"
+                )}>
                   <User size={18} className="text-foreground" />
                 </button>
               </Link>
             )}
             <button
-              className="w-10 h-10 flex items-center justify-center rounded-xl bg-black/5 text-foreground transition-all hover:bg-black/10"
+              className={cn(
+                "w-10 h-10 flex items-center justify-center rounded-xl transition-all",
+                isDark ? "bg-white/5 text-white hover:bg-white/10" : "bg-black/5 text-foreground hover:bg-black/10"
+              )}
               onClick={() => setIsOpen(!isOpen)}
               aria-label="Toggle menu"
             >
@@ -149,7 +168,10 @@ const Navbar = () => {
 
         {/* Mobile Navigation */}
         {isOpen && (
-          <div className="md:hidden absolute top-[100%] left-0 right-0 bg-white border-b border-black/5 p-6 animate-fade-in z-50 shadow-xl">
+          <div className={cn(
+            "md:hidden absolute top-[100%] left-0 right-0 border-b p-6 animate-fade-in z-50 shadow-xl transition-all duration-300",
+            isDark ? "bg-[#0c111d] border-white/5" : "bg-white border-black/5"
+          )}>
             <div className="flex flex-col gap-3">
               {navLinks.map((link) => (
                 <Link
@@ -160,14 +182,19 @@ const Navbar = () => {
                     "flex items-center justify-between px-5 py-4 rounded-xl text-base font-black transition-all",
                     isActive(link.path)
                       ? "bg-primary/10 text-primary"
-                      : "bg-black/5 text-foreground hover:bg-black/10"
+                      : cn(
+                        isDark ? "bg-white/5 text-white/90 hover:bg-white/10" : "bg-black/5 text-foreground hover:bg-black/10"
+                      )
                   )}
                 >
                   {link.name}
                   {isActive(link.path) && <ChevronRight size={18} />}
                 </Link>
               ))}
-              <div className="pt-6 mt-2 border-t border-black/5">
+              <div className={cn(
+                "pt-6 mt-2 border-t",
+                isDark ? "border-white/5" : "border-black/5"
+              )}>
                 <Link to="/premium" onClick={() => setIsOpen(false)}>
                   <Button size="lg" className="w-full rounded-xl bg-foreground text-background font-black h-14">
                     Get Premium +

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -10,10 +10,22 @@ import {
   FileText,
   Crown,
   LogOut,
-  ArrowLeft
+  Users,
+  MessageSquare,
+  BarChart3,
+  Activity,
+  Download,
+  Eye,
+  Search,
+  Mail,
+  Phone,
+  TrendingUp,
+  Clock
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
+import AdminPreloader from '@/components/ui/AdminPreloader';
+import AdminDashboardLoader from '@/components/ui/AdminDashboardLoader';
 import {
   Select,
   SelectContent,
@@ -21,14 +33,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
+import Reveal from '@/components/animations/Reveal';
 
-// Admin credentials (in production, this should be server-side)
+// Admin credentials
 const ADMIN_PASSWORD = 'adroits2024admin';
 
 interface Domain {
@@ -52,10 +59,55 @@ interface Note {
   pdfUrl: string;
 }
 
+interface Interaction {
+  id: string;
+  userId: string;
+  type: 'view' | 'download';
+  contentId: string;
+  timestamp: string;
+  path?: string; // e.g. "Diploma > Computer > DSA"
+}
+
+interface RegisteredUser {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  joinedAt: string;
+  interactionsCount: number;
+  lastActive: string;
+}
+
+interface Message {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  subject: string;
+  message: string;
+  createdAt: string;
+  isRead: boolean;
+}
+
+interface TrafficLog {
+  date: string;
+  visitors: number;
+  domain: string;
+}
+
 const Admin = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  // Check for existing session on mount
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return localStorage.getItem('admin_session') === 'active';
+  });
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isAdminPreloading, setIsAdminPreloading] = useState(false);
+  const [isDashboardLoading, setIsDashboardLoading] = useState(() => {
+    // If already authenticated on mount, show the dashboard loader
+    return localStorage.getItem('admin_session') === 'active';
+  });
+  const [activeTab, setActiveTab] = useState<'overview' | 'content' | 'users' | 'analytics' | 'messages'>('overview');
 
   // Data state
   const [domains, setDomains] = useState<Domain[]>([
@@ -75,18 +127,74 @@ const Admin = () => {
     { id: 'linked-lists', title: 'Linked Lists Complete Guide', subjectId: 'dsa', isPremium: true, pdfUrl: '/demo-premium.pdf' },
   ]);
 
-  // Form states
+  const [registeredUsers] = useState<RegisteredUser[]>([
+    { id: 'u1', name: 'Arif Shaikh', email: 'arif@example.com', phone: '+91 9876543210', joinedAt: '2025-12-15', interactionsCount: 12, lastActive: '2025-12-29 14:30' },
+    { id: 'u2', name: 'John Doe', email: 'john@example.com', phone: '+91 9123456789', joinedAt: '2025-12-20', interactionsCount: 5, lastActive: '2025-12-28 10:15' },
+    { id: 'u3', name: 'Sara Smith', email: 'sara@example.com', phone: '+91 8888888888', joinedAt: '2025-12-25', interactionsCount: 20, lastActive: '2025-12-29 18:00' },
+  ]);
+
+  const [interactions] = useState<Interaction[]>([
+    { id: 'i1', userId: 'u1', type: 'download', contentId: 'arrays-basics', timestamp: '2025-12-29 12:00', path: 'Engineering > Computer > DSA' },
+    { id: 'i2', userId: 'u3', type: 'view', contentId: 'linked-lists', timestamp: '2025-12-29 17:45', path: 'Engineering > IT > DSA' },
+    { id: 'i3', userId: 'u1', type: 'view', contentId: 'dbms', timestamp: '2025-12-29 14:00', path: 'Diploma > IT > DBMS' },
+  ]);
+
+  const [messages, setMessages] = useState<Message[]>([
+    { id: 'm1', name: 'Rahul Kumar', email: 'rahul@example.com', phone: '+91 7777777777', subject: 'Query about Premium', message: 'I want to know the pricing for the premium engineering subjects.', createdAt: '2025-12-28', isRead: false },
+    { id: 'm2', name: 'Priya Verma', email: 'priya@example.com', phone: '+91 6666666666', subject: 'Missing Subject', message: 'Can you please add Cyber Security notes for IT?', createdAt: '2025-12-29', isRead: true },
+  ]);
+
+  const [trafficLogs] = useState<TrafficLog[]>([
+    { date: '2025-12-23', visitors: 120, domain: 'Computer Engineering' },
+    { date: '2025-12-24', visitors: 150, domain: 'Computer Engineering' },
+    { date: '2025-12-25', visitors: 80, domain: 'Mechanical Engineering' },
+    { date: '2025-12-26', visitors: 200, domain: 'Information Technology' },
+    { date: '2025-12-27', visitors: 180, domain: 'Computer Engineering' },
+    { date: '2025-12-28', visitors: 250, domain: 'Information Technology' },
+    { date: '2025-12-29', visitors: 310, domain: 'Computer Engineering' },
+  ]);
+
+  // Form states update
   const [newDomain, setNewDomain] = useState<{ name: string; courseType: 'diploma' | 'engineering' }>({ name: '', courseType: 'engineering' });
   const [newSubject, setNewSubject] = useState({ name: '', domainId: '', isPremium: false });
   const [newNote, setNewNote] = useState({ title: '', subjectId: '', isPremium: false, pdfUrl: '' });
+  const [selectedMessageId, setSelectedMessageId] = useState<string | null>(messages.length > 0 ? messages[0].id : null);
+  const [selectedUserLog, setSelectedUserLog] = useState<RegisteredUser | null>(null);
+  const [isReplyOpen, setIsReplyOpen] = useState(false);
+  const [replyText, setReplyText] = useState('');
+  const [filterCourse, setFilterCourse] = useState<string>('all');
+  const [filterDomain, setFilterDomain] = useState<string>('all');
+  const [userSearchQuery, setUserSearchQuery] = useState('');
+  const [logSearchQuery, setLogSearchQuery] = useState('');
+  const [logFilterType, setLogFilterType] = useState<string>('all');
+  const [logFilterDomain, setLogFilterDomain] = useState<string>('all');
+
+  const activeUsers = useMemo(() =>
+    registeredUsers.filter(u => u.interactionsCount > 10) // Mock logic: users with > 10 interactions are active
+    , [registeredUsers]);
+
+  const selectedMessage = useMemo(() =>
+    messages.find(m => m.id === selectedMessageId) || null
+    , [messages, selectedMessageId]);
 
   const handleLogin = () => {
     if (password === ADMIN_PASSWORD) {
-      setIsAuthenticated(true);
+      localStorage.setItem('admin_session', 'active');
+      setIsAdminPreloading(true); // Trigger "ruthless" preloader
+      setTimeout(() => {
+        setIsAuthenticated(true);
+      }, 500); // Small delay to sync with preloader start if needed
       setError('');
+      toast.success('Access Granted');
     } else {
       setError('Invalid password');
     }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('admin_session');
+    setIsAuthenticated(false);
+    toast.success('Logged out');
   };
 
   const handleAddDomain = () => {
@@ -133,333 +241,907 @@ const Admin = () => {
     toast.success('Note deleted');
   };
 
+  const toggleMessageRead = (id: string) => {
+    setMessages(messages.map(m => m.id === id ? { ...m, isRead: true } : m));
+    setSelectedMessageId(id);
+  };
+
+  const metrics = useMemo(() => ({
+    totalUsers: registeredUsers.length,
+    activeNow: 42,
+    totalDownloads: interactions.filter(i => i.type === 'download').length,
+    unreadMessages: messages.filter(m => !m.isRead).length
+  }), [registeredUsers, interactions, messages]);
+
+  const filteredUsers = useMemo(() => {
+    return registeredUsers.filter(user => {
+      const matchesSearch = user.name.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
+        user.email.toLowerCase().includes(userSearchQuery.toLowerCase());
+      const matchesCourse = filterCourse === 'all' || user.interactionsCount > 0;
+      const matchesDomain = filterDomain === 'all' || user.id === 'u1';
+      return matchesSearch && matchesCourse && matchesDomain;
+    });
+  }, [registeredUsers, userSearchQuery, filterCourse, filterDomain]);
+
+  const filteredLogs = useMemo(() => {
+    return interactions.filter(log => {
+      const user = registeredUsers.find(u => u.id === log.userId);
+      const note = notes.find(n => n.id === log.contentId);
+      const domainName = subjects.find(s => s.id === note?.subjectId)?.domainId;
+
+      const matchesSearch =
+        log.contentId.toLowerCase().includes(logSearchQuery.toLowerCase()) ||
+        (user?.name.toLowerCase().includes(logSearchQuery.toLowerCase()) ?? false) ||
+        (note?.title.toLowerCase().includes(logSearchQuery.toLowerCase()) ?? false);
+
+      const matchesType = logFilterType === 'all' || log.type === logFilterType;
+      const matchesDomain = logFilterDomain === 'all' || domainName === logFilterDomain;
+
+      return matchesSearch && matchesType && matchesDomain;
+    });
+  }, [interactions, logSearchQuery, logFilterType, logFilterDomain, registeredUsers, notes, subjects]);
+
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-secondary flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
-          <div className="bg-card rounded-3xl p-8 shadow-xl border border-border">
-            <div className="text-center mb-8">
-              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                <Shield className="w-8 h-8 text-primary" />
-              </div>
-              <h1 className="text-2xl font-semibold mb-2">Admin Panel</h1>
-              <p className="text-muted-foreground text-sm">Enter password to continue</p>
-            </div>
+      <div className="min-h-screen bg-background flex items-center justify-center p-6 selection:bg-primary/10">
+        <div className="absolute inset-0 z-0 pointer-events-none opacity-50">
+          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-[120px]" />
+          <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/5 rounded-full blur-[120px]" />
+        </div>
 
-            <div className="space-y-4">
-              <Input
-                type="password"
-                placeholder="Enter admin password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-                className="h-12 rounded-xl"
-              />
-              {error && (
-                <p className="text-sm text-destructive text-center">{error}</p>
-              )}
-              <Button
-                variant="lime"
-                className="w-full h-12"
-                onClick={handleLogin}
-              >
-                Access Panel
-              </Button>
-              <Link to="/" className="block">
-                <Button variant="ghost" className="w-full gap-2">
-                  <ArrowLeft size={16} />
-                  Back to Website
+        <div className="relative z-10 w-full max-w-sm">
+          <Reveal animation="reveal-zoom" duration={0.8}>
+            <div className="bg-card dark:bg-slate-950 border border-border p-12 rounded-3xl shadow-xl relative transition-all">
+              <div className="text-center mb-10">
+                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-6">
+                  <Shield className="w-8 h-8 text-primary" strokeWidth={2} />
+                </div>
+                <h1 className="text-3xl font-bold tracking-tight text-foreground mb-1">
+                  Adroits <span className="text-primary">Admin</span>
+                </h1>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest">Security Gateway</p>
+              </div>
+
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <Input
+                    type="password"
+                    placeholder="Enter Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+                    className="h-12 rounded-xl bg-muted/50 border-input px-4 text-foreground font-medium focus:ring-2 focus:ring-primary/20 transition-all text-center"
+                  />
+                </div>
+
+                {error && (
+                  <p className="text-[10px] font-bold text-destructive text-center">{error}</p>
+                )}
+
+                <Button
+                  className="w-full h-12 rounded-xl bg-primary text-white hover:bg-primary/90 font-bold text-xs uppercase tracking-widest transition-all"
+                  onClick={handleLogin}
+                >
+                  Confirm Identity
                 </Button>
-              </Link>
+
+                <div className="text-center">
+                  <Link to="/" className="text-[10px] font-bold text-muted-foreground hover:text-primary transition-colors uppercase tracking-widest">
+                    Back to Website
+                  </Link>
+                </div>
+              </div>
             </div>
-          </div>
+          </Reveal>
         </div>
       </div>
     );
   }
 
+  // Handle preloader states after all hooks and auth check
+  if (isAdminPreloading) {
+    return <AdminPreloader onComplete={() => setIsAdminPreloading(false)} />;
+  }
+
+  if (isDashboardLoading) {
+    return <AdminDashboardLoader onComplete={() => setIsDashboardLoading(false)} />;
+  }
+
+  const sidebarItems: { id: typeof activeTab; label: string; icon: any; count?: number }[] = [
+    { id: 'overview', label: 'Overview', icon: BarChart3 },
+    { id: 'content', label: 'Content Management', icon: FolderOpen },
+    { id: 'users', label: 'User Directory', icon: Users },
+    { id: 'analytics', label: 'Traffic & Logs', icon: Activity },
+    { id: 'messages', label: 'Messages', icon: MessageSquare, count: metrics.unreadMessages },
+  ];
+
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="bg-card border-b border-border sticky top-0 z-40">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Shield size={20} className="text-primary" />
-              </div>
-              <div>
-                <h1 className="font-semibold">Adroits Admin</h1>
-                <p className="text-xs text-muted-foreground">Content Management</p>
-              </div>
+    <div className="min-h-screen bg-background flex selection:bg-primary/20">
+      {/* SaaS Sidebar */}
+      <aside className="w-80 bg-card dark:bg-slate-950 border-r border-border flex flex-col sticky top-0 h-screen z-50 transition-all">
+        <div className="p-8">
+          <div className="flex items-center gap-3 mb-10">
+            <div className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center shadow-lg shadow-primary/20">
+              <Shield size={20} />
             </div>
-            <div className="flex items-center gap-2">
-              <Link to="/">
-                <Button variant="outline" size="sm" className="gap-2">
-                  <ArrowLeft size={14} />
-                  View Site
-                </Button>
-              </Link>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="gap-2 text-destructive hover:text-destructive"
-                onClick={() => setIsAuthenticated(false)}
+            <div>
+              <h1 className="text-lg font-bold tracking-tight text-foreground">ADROITS</h1>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-primary">Admin Panel</p>
+            </div>
+          </div>
+
+          <nav className="space-y-1.5">
+            {sidebarItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => setActiveTab(item.id)}
+                className={`w-full flex items-center justify-between px-5 py-3.5 rounded-xl transition-all duration-500 group relative ${activeTab === item.id
+                  ? 'bg-primary/5 text-primary'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                  }`}
               >
-                <LogOut size={14} />
-                Logout
-              </Button>
+                {activeTab === item.id && (
+                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-6 bg-primary rounded-full" />
+                )}
+                <div className="flex items-center gap-3 relative z-10">
+                  <item.icon size={16} className={activeTab === item.id ? 'opacity-100 font-bold' : 'opacity-60'} />
+                  <span className={`text-[11px] font-bold uppercase tracking-widest ${activeTab === item.id ? 'text-primary' : ''}`}>{item.label}</span>
+                </div>
+                {item.count && (
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${activeTab === item.id ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
+                    {item.count}
+                  </span>
+                )}
+              </button>
+            ))}
+          </nav>
+        </div>
+
+        <div className="mt-auto p-10">
+          <div className="group cursor-pointer" onClick={handleLogout}>
+            <div className="flex items-center gap-4 px-5 py-4 rounded-xl hover:bg-rose-500/5 transition-colors group">
+              <LogOut size={16} className="text-[#94A3B8]/60 group-hover:text-rose-400/60 transition-colors" />
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#94A3B8]/60 group-hover:text-rose-400/40 transition-colors">Terminate</span>
             </div>
           </div>
         </div>
-      </div>
+      </aside>
 
-      {/* Content */}
-      <div className="container mx-auto px-4 py-8">
-        <Tabs defaultValue="domains" className="space-y-8">
-          <TabsList className="grid w-full max-w-md grid-cols-3">
-            <TabsTrigger value="domains" className="gap-2">
-              <FolderOpen size={14} />
-              Domains
-            </TabsTrigger>
-            <TabsTrigger value="subjects" className="gap-2">
-              <BookOpen size={14} />
-              Subjects
-            </TabsTrigger>
-            <TabsTrigger value="notes" className="gap-2">
-              <FileText size={14} />
-              Notes
-            </TabsTrigger>
-          </TabsList>
-
-          {/* Domains Tab */}
-          <TabsContent value="domains" className="space-y-6">
-            <div className="card-premium p-6">
-              <h2 className="text-lg font-semibold mb-4">Add New Domain</h2>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Input
-                  placeholder="Domain name (e.g., Computer Engineering)"
-                  value={newDomain.name}
-                  onChange={(e) => setNewDomain({ ...newDomain, name: e.target.value })}
-                  className="flex-1 h-12 rounded-xl"
-                />
-                <Select
-                  value={newDomain.courseType}
-                  onValueChange={(v: string) => setNewDomain({ ...newDomain, courseType: v as Domain['courseType'] })}
-                >
-                  <SelectTrigger className="w-40 h-12 rounded-xl">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="diploma">Diploma</SelectItem>
-                    <SelectItem value="engineering">Engineering</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Button variant="lime" className="h-12 gap-2" onClick={handleAddDomain}>
-                  <Plus size={16} />
-                  Add
-                </Button>
-              </div>
-            </div>
-
-            <div className="card-premium p-6">
-              <h2 className="text-lg font-semibold mb-4">Existing Domains</h2>
-              <div className="space-y-3">
-                {domains.map((domain) => (
-                  <div key={domain.id} className="flex items-center justify-between p-4 bg-muted/30 rounded-xl">
-                    <div className="flex items-center gap-3">
-                      <FolderOpen size={18} className="text-muted-foreground" />
-                      <div>
-                        <p className="font-medium">{domain.name}</p>
-                        <p className="text-xs text-muted-foreground capitalize">{domain.courseType}</p>
-                      </div>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-destructive hover:text-destructive"
-                      onClick={() => handleDeleteDomain(domain.id)}
-                    >
-                      <Trash2 size={16} />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </TabsContent>
-
-          {/* Subjects Tab */}
-          <TabsContent value="subjects" className="space-y-6">
-            <div className="card-premium p-6">
-              <h2 className="text-lg font-semibold mb-4">Add New Subject</h2>
-              <div className="grid sm:grid-cols-2 gap-4 mb-4">
-                <Input
-                  placeholder="Subject name"
-                  value={newSubject.name}
-                  onChange={(e) => setNewSubject({ ...newSubject, name: e.target.value })}
-                  className="h-12 rounded-xl"
-                />
-                <Select
-                  value={newSubject.domainId}
-                  onValueChange={(v) => setNewSubject({ ...newSubject, domainId: v })}
-                >
-                  <SelectTrigger className="h-12 rounded-xl">
-                    <SelectValue placeholder="Select domain" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {domains.map((d) => (
-                      <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex items-center justify-between">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={newSubject.isPremium}
-                    onChange={(e) => setNewSubject({ ...newSubject, isPremium: e.target.checked })}
-                    className="w-4 h-4 rounded"
-                  />
-                  <Crown size={16} className="text-primary" />
-                  <span className="text-sm">Premium Subject</span>
-                </label>
-                <Button variant="lime" className="gap-2" onClick={handleAddSubject}>
-                  <Plus size={16} />
-                  Add Subject
-                </Button>
-              </div>
-            </div>
-
-            <div className="card-premium p-6">
-              <h2 className="text-lg font-semibold mb-4">Existing Subjects</h2>
-              <div className="space-y-3">
-                {subjects.map((subject) => (
-                  <div key={subject.id} className="flex items-center justify-between p-4 bg-muted/30 rounded-xl">
-                    <div className="flex items-center gap-3">
-                      <BookOpen size={18} className="text-muted-foreground" />
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <p className="font-medium">{subject.name}</p>
-                          {subject.isPremium && (
-                            <span className="bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full flex items-center gap-1">
-                              <Crown size={10} />
-                              Premium
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          {domains.find(d => d.id === subject.domainId)?.name}
-                        </p>
-                      </div>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-destructive hover:text-destructive"
-                      onClick={() => handleDeleteSubject(subject.id)}
-                    >
-                      <Trash2 size={16} />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </TabsContent>
-
-          {/* Notes Tab */}
-          <TabsContent value="notes" className="space-y-6">
-            <div className="card-premium p-6">
-              <h2 className="text-lg font-semibold mb-4">Add New Note</h2>
-              <div className="grid sm:grid-cols-2 gap-4 mb-4">
-                <Input
-                  placeholder="Note title"
-                  value={newNote.title}
-                  onChange={(e) => setNewNote({ ...newNote, title: e.target.value })}
-                  className="h-12 rounded-xl"
-                />
-                <Select
-                  value={newNote.subjectId}
-                  onValueChange={(v) => setNewNote({ ...newNote, subjectId: v })}
-                >
-                  <SelectTrigger className="h-12 rounded-xl">
-                    <SelectValue placeholder="Select subject" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {subjects.map((s) => (
-                      <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+      {/* Main Content */}
+      <main className="flex-1 overflow-y-auto custom-scrollbar bg-background relative selection:bg-primary/20 transition-all">
+        <header className="h-20 bg-card/80 dark:bg-slate-950/80 backdrop-blur-md flex items-center justify-between px-10 sticky top-0 z-40 border-b border-border transition-all">
+          <div className="flex-1 max-w-xl">
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/60" size={16} />
               <Input
-                placeholder="PDF URL (e.g., /notes/chapter1.pdf)"
-                value={newNote.pdfUrl}
-                onChange={(e) => setNewNote({ ...newNote, pdfUrl: e.target.value })}
-                className="h-12 rounded-xl mb-4"
+                placeholder="Search resources..."
+                className="w-full h-11 pl-11 pr-4 rounded-xl bg-muted/50 dark:bg-white/5 border-transparent focus:bg-muted dark:focus:bg-white/10 transition-all font-medium text-sm text-foreground"
               />
-              <div className="flex items-center justify-between">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={newNote.isPremium}
-                    onChange={(e) => setNewNote({ ...newNote, isPremium: e.target.checked })}
-                    className="w-4 h-4 rounded"
-                  />
-                  <Crown size={16} className="text-primary" />
-                  <span className="text-sm">Premium Note</span>
-                </label>
-                <Button variant="lime" className="gap-2" onClick={handleAddNote}>
-                  <Plus size={16} />
-                  Add Note
-                </Button>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-4">
+              <div className="text-right hidden sm:block">
+                <p className="text-xs font-bold text-foreground">ADMINISTRATOR</p>
+                <p className="text-[10px] font-medium text-primary uppercase tracking-widest mt-0.5">Full Access</p>
+              </div>
+              <div className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center font-bold text-xs shadow-lg shadow-primary/20">
+                AD
               </div>
             </div>
+          </div>
+        </header>
 
-            <div className="card-premium p-6">
-              <h2 className="text-lg font-semibold mb-4">Existing Notes</h2>
-              <div className="space-y-3">
-                {notes.map((note) => (
-                  <div key={note.id} className="flex items-center justify-between p-4 bg-muted/30 rounded-xl">
-                    <div className="flex items-center gap-3">
-                      <FileText size={18} className="text-muted-foreground" />
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <p className="font-medium">{note.title}</p>
-                          {note.isPremium && (
-                            <span className="bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full flex items-center gap-1">
-                              <Crown size={10} />
-                              Premium
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          {subjects.find(s => s.id === note.subjectId)?.name}
-                        </p>
+        {/* Dashboard Sections */}
+        <div className="p-12 space-y-12">
+          {activeTab === 'overview' && (
+            <div className="space-y-10 animate-fade-in">
+              <div className="flex items-end justify-between px-2">
+                <div>
+                  <h2 className="text-2xl font-bold tracking-tight text-foreground mb-1">Overview</h2>
+                  <p className="text-muted-foreground text-sm font-medium">Real-time data and system status.</p>
+                </div>
+                <div className="px-4 py-2 bg-muted rounded-xl text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                  {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {[
+                  { label: 'Active Sessions', value: metrics.activeNow, icon: Activity, color: 'text-primary' },
+                  { label: 'Total Users', value: metrics.totalUsers, icon: Users, color: 'text-slate-500' },
+                  { label: 'Total Downloads', value: metrics.totalDownloads, icon: Download, color: 'text-emerald-500' },
+                  { label: 'Unread Messages', value: metrics.unreadMessages, icon: Mail, color: 'text-amber-500' },
+                ].map((stat) => (
+                  <div key={stat.label} className="bg-card dark:bg-slate-900 p-6 rounded-3xl border border-border shadow-sm hover:shadow-md transition-all group">
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center transition-transform group-hover:scale-105">
+                        <stat.icon className={`${stat.color} w-5 h-5`} strokeWidth={2} />
                       </div>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{stat.label}</p>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-destructive hover:text-destructive"
-                      onClick={() => handleDeleteNote(note.id)}
-                    >
-                      <Trash2 size={16} />
-                    </Button>
+                    <h3 className="text-3xl font-bold tracking-tight text-foreground">{stat.value}</h3>
                   </div>
                 ))}
               </div>
-            </div>
-          </TabsContent>
-        </Tabs>
 
-        {/* Save Note */}
-        <div className="mt-8 p-4 bg-muted/30 rounded-xl text-center">
-          <p className="text-sm text-muted-foreground">
-            Note: Changes are stored locally. Connect to a database for persistent storage.
-          </p>
+              <div className="grid lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2 space-y-8">
+                  <div className="card-premium dark:glass-card dark:bg-slate-900/40 p-8 rounded-[2.5rem] border border-primary/10 dark:border-white/5 shadow-premium dark:shadow-2xl transition-all duration-700">
+                    <div className="flex items-center justify-between mb-8">
+                      <h3 className="text-xl font-display font-bold tracking-tight text-foreground italic">Recent Interactions</h3>
+                      <Link to="#" onClick={() => setActiveTab('analytics')} className="text-[10px] font-black text-primary uppercase tracking-widest hover:text-primary/80 transition-colors">View All</Link>
+                    </div>
+                    <div className="space-y-4">
+                      {interactions.slice(0, 5).map((log) => {
+                        const user = registeredUsers.find(u => u.id === log.userId);
+                        const note = notes.find(n => n.id === log.contentId);
+                        return (
+                          <div key={log.id} className="flex items-center justify-between p-5 rounded-2xl bg-background/30 dark:bg-white/5 border border-primary/5 dark:border-white/10 hover:bg-background/50 dark:hover:bg-white/[0.04] transition-all group">
+                            <div className="flex items-center gap-4">
+                              <div className="w-10 h-10 rounded-xl bg-primary/5 dark:bg-white/[0.03] flex items-center justify-center border border-primary/10 dark:border-white/10 shadow-inner">
+                                {log.type === 'download' ? <Download size={16} className="text-primary opacity-80" /> : <Eye size={16} className="text-primary opacity-80" />}
+                              </div>
+                              <div>
+                                <p className="text-sm font-bold text-foreground">{user?.name} {log.type === 'download' ? 'downloaded' : 'viewed'}</p>
+                                <p className="text-[10px] font-medium text-primary/60 tracking-wider">
+                                  {log.path || (note?.title || log.contentId)}
+                                </p>
+                              </div>
+                            </div>
+                            <span className="text-[9px] font-black text-muted-foreground/60 uppercase tracking-widest">{log.timestamp}</span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  <div className="bg-card dark:bg-slate-900 p-8 rounded-[2.5rem] border border-border shadow-sm">
+                    <div className="flex items-center justify-between mb-8">
+                      <h3 className="text-lg font-bold tracking-tight text-foreground">Top Users</h3>
+                      <Users size={18} className="text-muted-foreground/40" />
+                    </div>
+                    <div className="space-y-4">
+                      {activeUsers.slice(0, 3).map(user => (
+                        <div key={user.id} className="flex items-center gap-4 p-2 rounded-xl hover:bg-muted/50 transition-colors">
+                          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">
+                            {user.name[0]}
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-xs font-bold text-foreground">{user.name}</p>
+                            <p className="text-[10px] font-medium text-muted-foreground">Active Now</p>
+                          </div>
+                          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="bg-card dark:bg-slate-900 p-8 rounded-[2.5rem] border border-border shadow-sm">
+                    <div className="flex items-center justify-between mb-8">
+                      <h3 className="text-lg font-bold tracking-tight text-foreground">System Status</h3>
+                      <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                    </div>
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                          <span>Storage</span>
+                          <span>4.2 GB / 50 GB</span>
+                        </div>
+                        <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                          <div className="h-full bg-primary/60 w-[8%] rounded-full" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'content' && (
+            <div className="space-y-10 animate-fade-in">
+              <div className="px-2">
+                <h2 className="text-2xl font-bold tracking-tight text-foreground mb-1">Content Management</h2>
+                <p className="text-muted-foreground text-sm font-medium">Manage domains, subjects, and study materials.</p>
+              </div>
+
+              <div className="grid lg:grid-cols-2 gap-8">
+                {/* Domains */}
+                <div className="bg-card dark:bg-slate-900 p-8 rounded-[2.5rem] border border-border shadow-sm">
+                  <div className="flex items-center justify-between mb-8">
+                    <h3 className="text-xl font-bold tracking-tight text-foreground">Domains</h3>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="rounded-xl h-9 px-4 border-primary/20 text-primary hover:bg-primary/5 font-bold text-[10px] uppercase tracking-widest transition-all"
+                      onClick={handleAddDomain}
+                    >
+                      <Plus size={14} className="mr-1.5" /> Add Domain
+                    </Button>
+                  </div>
+                  <div className="space-y-4 mb-8">
+                    <Input
+                      placeholder="Domain Name (e.g. Computer Science)"
+                      value={newDomain.name}
+                      onChange={e => setNewDomain({ ...newDomain, name: e.target.value })}
+                      className="h-11 rounded-xl bg-muted/50 border-input text-foreground placeholder:text-muted-foreground/40 text-sm focus:ring-2 focus:ring-primary/20 transition-all font-medium"
+                    />
+                    <Select defaultValue="engineering" onValueChange={(v) => setNewDomain({ ...newDomain, courseType: v as any })}>
+                      <SelectTrigger className="h-11 rounded-xl bg-muted/50 border-input text-foreground text-[10px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-primary/20 transition-all">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-card dark:bg-slate-900 border-border">
+                        <SelectItem value="engineering">Engineering</SelectItem>
+                        <SelectItem value="diploma">Diploma</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    {domains.map(domain => (
+                      <div key={domain.id} className="flex items-center justify-between p-4 rounded-xl bg-muted/20 dark:bg-white/5 border border-transparent hover:border-border group transition-all">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold shadow-inner">
+                            {domain.name.charAt(0)}
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-foreground">{domain.name}</p>
+                            <p className="text-[10px] font-bold text-primary uppercase tracking-widest opacity-80">{domain.courseType}</p>
+                          </div>
+                        </div>
+                        <Button variant="ghost" size="sm" onClick={() => handleDeleteDomain(domain.id)} className="h-8 w-8 p-0 text-muted-foreground/40 hover:text-destructive hover:bg-destructive/5 transition-all">
+                          <Trash2 size={14} />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Subjects */}
+                <div className="bg-card dark:bg-slate-900 p-8 rounded-[2.5rem] border border-border shadow-sm">
+                  <div className="flex items-center justify-between mb-8">
+                    <h3 className="text-xl font-bold tracking-tight text-foreground">Subjects</h3>
+                    <Button
+                      className="rounded-xl h-9 px-4 bg-primary text-white hover:bg-primary/90 font-bold text-[10px] uppercase tracking-widest transition-all shadow-lg shadow-primary/20"
+                      onClick={handleAddSubject}
+                    >
+                      <Plus size={14} className="mr-1.5" /> Add Subject
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 mb-8">
+                    <Input
+                      placeholder="Subject Name"
+                      value={newSubject.name}
+                      onChange={e => setNewSubject({ ...newSubject, name: e.target.value })}
+                      className="h-11 rounded-xl bg-muted/50 border-input text-foreground placeholder:text-muted-foreground/40 text-sm focus:ring-2 focus:ring-primary/20 transition-all font-medium col-span-2"
+                    />
+                    <Select onValueChange={(v) => setNewSubject({ ...newSubject, domainId: v })}>
+                      <SelectTrigger className="h-11 rounded-xl bg-muted/50 border-input text-foreground text-[10px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-primary/20 transition-all">
+                        <SelectValue placeholder="Select Domain" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-card dark:bg-slate-900 border-border">
+                        {domains.map(d => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    <div className="flex items-center gap-3 px-4 bg-muted/50 border border-input rounded-xl h-11">
+                      <input
+                        type="checkbox"
+                        checked={newSubject.isPremium}
+                        onChange={e => setNewSubject({ ...newSubject, isPremium: e.target.checked })}
+                        className="w-4 h-4 rounded accent-primary bg-transparent border-input"
+                      />
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                        <Crown size={12} className="text-primary/60" /> Premium
+                      </span>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    {subjects.map(subject => (
+                      <div key={subject.id} className="flex items-center justify-between p-4 rounded-xl bg-muted/20 dark:bg-white/5 border border-transparent hover:border-border transition-all">
+                        <div className="flex items-center gap-4">
+                          <BookOpen size={16} className="text-muted-foreground" />
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <p className="text-sm font-bold text-foreground">{subject.name}</p>
+                              {subject.isPremium && <Crown size={10} className="text-primary/60" />}
+                            </div>
+                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{domains.find(d => d.id === subject.domainId)?.name}</p>
+                          </div>
+                        </div>
+                        <Button variant="ghost" size="sm" onClick={() => handleDeleteSubject(subject.id)} className="h-8 w-8 p-0 text-muted-foreground/40 hover:text-destructive hover:bg-destructive/5 transition-all">
+                          <Trash2 size={14} />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Notes Management */}
+              <div className="bg-card dark:bg-slate-900 p-10 rounded-[2.5rem] border border-border shadow-sm">
+                <div className="flex items-center justify-between mb-8">
+                  <h3 className="text-xl font-bold tracking-tight text-foreground">Study Materials</h3>
+                  <Button
+                    className="rounded-xl h-11 px-6 bg-primary text-white shadow-lg shadow-primary/20 font-bold text-[10px] uppercase tracking-widest transition-all hover:bg-primary/90"
+                    onClick={handleAddNote}
+                  >
+                    <Plus size={16} className="mr-2" /> Upload Note
+                  </Button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10 p-8 rounded-2xl bg-muted/50 dark:bg-white/5 border border-border">
+                  <div className="space-y-2">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Title</p>
+                    <Input
+                      placeholder="Note Title"
+                      value={newNote.title}
+                      onChange={e => setNewNote({ ...newNote, title: e.target.value })}
+                      className="h-11 bg-card border-input rounded-xl text-sm font-medium"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Subject</p>
+                    <Select onValueChange={(v) => setNewNote({ ...newNote, subjectId: v })}>
+                      <SelectTrigger className="h-11 bg-card border-input rounded-xl text-[10px] font-bold uppercase tracking-widest">
+                        <SelectValue placeholder="Select Subject" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-card dark:bg-slate-900 border-border">
+                        {subjects.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">PDF URL</p>
+                    <Input
+                      placeholder="URL to PDF"
+                      value={newNote.pdfUrl}
+                      onChange={e => setNewNote({ ...newNote, pdfUrl: e.target.value })}
+                      className="h-11 bg-card border-input rounded-xl text-sm font-medium"
+                    />
+                  </div>
+                  <div className="flex items-center gap-4 pt-4">
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={newNote.isPremium}
+                        onChange={e => setNewNote({ ...newNote, isPremium: e.target.checked })}
+                        className="w-4 h-4 rounded accent-primary"
+                      />
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Premium Access</span>
+                    </label>
+                  </div>
+                </div>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {notes.map(note => (
+                    <div key={note.id} className="p-6 rounded-3xl border border-border bg-card hover:border-primary/50 transition-all group shadow-sm">
+                      <div className="flex items-start justify-between mb-6">
+                        <div className="w-10 h-10 rounded-xl bg-primary/5 flex items-center justify-center text-primary">
+                          <FileText size={18} />
+                        </div>
+                        <Button variant="ghost" size="sm" onClick={() => handleDeleteNote(note.id)} className="text-muted-foreground h-8 w-8 hover:text-destructive hover:bg-destructive/5 rounded-full p-0">
+                          <Trash2 size={14} />
+                        </Button>
+                      </div>
+                      <div className="mb-6">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="font-bold text-base text-foreground line-clamp-1">{note.title}</h4>
+                          {note.isPremium && <Crown size={12} className="text-primary/60" />}
+                        </div>
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{subjects.find(s => s.id === note.subjectId)?.name}</p>
+                      </div>
+                      <div className="pt-4 border-t border-border flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-primary/80">
+                        <span>View File</span>
+                        <span className="cursor-pointer hover:underline">Link &rarr;</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'users' && (
+            <div className="space-y-10 animate-fade-in">
+              <div className="px-2">
+                <h2 className="text-2xl font-bold tracking-tight text-foreground mb-1">User Directory</h2>
+                <p className="text-muted-foreground text-sm font-medium">Manage registered students and track engagement.</p>
+              </div>
+
+              <div className="bg-card dark:bg-slate-900 border border-border rounded-[2.5rem] overflow-hidden shadow-sm">
+                <div className="p-6 border-b border-border flex flex-wrap items-center justify-between gap-4 bg-muted/20">
+                  <div className="flex flex-1 gap-3 min-w-[300px]">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/60" size={16} />
+                      <Input
+                        placeholder="Search users..."
+                        value={userSearchQuery}
+                        onChange={(e) => setUserSearchQuery(e.target.value)}
+                        className="h-10 pl-11 rounded-xl bg-card border-input text-sm font-medium"
+                      />
+                    </div>
+                    <Select value={filterCourse} onValueChange={setFilterCourse}>
+                      <SelectTrigger className="w-[140px] h-10 rounded-xl bg-card border-input text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                        <SelectValue placeholder="Stream" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-card dark:bg-slate-900 border-border">
+                        <SelectItem value="all">All Streams</SelectItem>
+                        <SelectItem value="engineering">Engineering</SelectItem>
+                        <SelectItem value="diploma">Diploma</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button variant="outline" size="sm" className="rounded-xl h-10 px-4 gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                    <Download size={14} /> Export CSV
+                  </Button>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="bg-muted/10">
+                        <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">User</th>
+                        <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Engagement</th>
+                        <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Joined At</th>
+                        <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Last Active</th>
+                        <th className="px-6 py-4 text-right"></th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {filteredUsers.map(user => (
+                        <tr key={user.id} className="group hover:bg-muted/30 transition-colors">
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center font-bold text-primary text-xs">
+                                {user.name.split(' ').map(n => n[0]).join('')}
+                              </div>
+                              <div>
+                                <p className="text-sm font-bold text-foreground">{user.name}</p>
+                                <p className="text-[10px] font-medium text-muted-foreground">{user.email}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <div className="h-1.5 w-20 bg-muted rounded-full overflow-hidden">
+                                <div className="h-full bg-primary/40 rounded-full" style={{ width: `${Math.min(user.interactionsCount * 5, 100)}%` }} />
+                              </div>
+                              <span className="text-[10px] font-bold text-muted-foreground">{user.interactionsCount} hits</span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className="text-[10px] font-bold text-muted-foreground">{user.joinedAt}</span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-2">
+                              <Clock size={12} className="text-muted-foreground/40" />
+                              <span className="text-[10px] font-bold text-muted-foreground">{user.lastActive}</span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="font-bold text-[10px] uppercase tracking-widest text-primary hover:bg-primary/5 transition-all opacity-0 group-hover:opacity-100"
+                              onClick={() => setSelectedUserLog(user)}
+                            >
+                              Log
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'analytics' && (
+            <div className="space-y-10 animate-fade-in">
+              <div className="px-2">
+                <h2 className="text-2xl font-bold tracking-tight text-foreground mb-1">Analytics</h2>
+                <p className="text-muted-foreground text-sm font-medium">Platform engagement and growth metrics.</p>
+              </div>
+
+              <div className="grid lg:grid-cols-4 gap-8">
+                <div className="bg-card p-8 rounded-[2.5rem] border border-border flex flex-col justify-between group transition-all shadow-sm">
+                  <div>
+                    <div className="flex items-center justify-between mb-8">
+                      <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">High Traffic Day</h4>
+                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary"><TrendingUp size={14} /></div>
+                    </div>
+                    <h3 className="text-2xl font-bold mb-2 tracking-tight text-foreground">Sunday</h3>
+                    <p className="text-xs font-bold text-emerald-500">
+                      +12.4% <span className="text-muted-foreground font-medium">this week</span>
+                    </p>
+                  </div>
+                </div>
+                <div className="bg-card p-8 rounded-[2.5rem] border border-border flex flex-col justify-between group transition-all shadow-sm">
+                  <div>
+                    <div className="flex items-center justify-between mb-8">
+                      <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Popular Subject</h4>
+                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary"><Activity size={14} /></div>
+                    </div>
+                    <h3 className="text-2xl font-bold mb-2 tracking-tight text-foreground">COMPS</h3>
+                    <p className="text-xs font-bold text-primary">62% <span className="text-muted-foreground font-medium">engagement</span></p>
+                  </div>
+                </div>
+                <div className="lg:col-span-2 bg-card p-8 rounded-[2.5rem] border border-border flex flex-col justify-between group transition-all shadow-sm">
+                  <div>
+                    <div className="flex items-center justify-between mb-8">
+                      <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">User Retention</h4>
+                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary"><Shield size={14} /></div>
+                    </div>
+                    <h3 className="text-4xl font-bold mb-4 tracking-tight text-foreground">84.2%</h3>
+                    <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                      <div className="h-full bg-primary/60 rounded-full" style={{ width: '84.2%' }} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-card p-8 rounded-[2.5rem] border border-border shadow-sm">
+                <div className="flex items-center justify-between mb-12">
+                  <div>
+                    <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Traffic Trends</h4>
+                    <h3 className="text-xl font-bold tracking-tight text-foreground">Weekly Overview</h3>
+                  </div>
+                  <div className="flex gap-2">
+                    <div className="px-4 py-1.5 rounded-lg bg-muted text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Last 7 Days</div>
+                  </div>
+                </div>
+
+                <div className="flex items-end justify-between h-56 gap-4 relative mb-12">
+                  <div className="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-5">
+                    {[1, 2, 3, 4].map(i => <div key={i} className="h-px w-full bg-primary/20" />)}
+                  </div>
+                  {trafficLogs.map((log, i) => (
+                    <div key={i} className="flex-1 flex flex-col items-center gap-4 group/bar relative">
+                      <div
+                        className="w-full bg-primary/10 group-hover/bar:bg-primary/30 rounded-t-xl transition-all duration-500 relative cursor-pointer"
+                        style={{ height: `${(log.visitors / 350) * 100}%` }}
+                      >
+                        <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-card border border-border px-3 py-1.5 rounded-lg text-[10px] font-bold opacity-0 group-hover/bar:opacity-100 transition-all shadow-xl z-20 whitespace-nowrap">
+                          {log.visitors} visitors
+                          <div className="absolute bottom-[-4px] left-1/2 -translate-x-1/2 w-2 h-2 bg-card rotate-45 border-r border-b border-border" />
+                        </div>
+                      </div>
+                      <div className="text-center">
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase">{log.date.split('-').slice(2).join('')}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="bg-muted/10 p-8 rounded-2xl border border-border">
+                  <div className="flex flex-wrap items-center justify-between gap-6 mb-8">
+                    <h3 className="text-lg font-bold tracking-tight text-foreground">Detailed Activity</h3>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <div className="relative">
+                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/60" size={14} />
+                        <Input
+                          placeholder="Search logs..."
+                          value={logSearchQuery}
+                          onChange={e => setLogSearchQuery(e.target.value)}
+                          className="h-9 pl-9 w-48 rounded-lg bg-card border-input text-xs font-medium"
+                        />
+                      </div>
+                      <Select value={logFilterType} onValueChange={setLogFilterType}>
+                        <SelectTrigger className="w-[110px] h-9 rounded-lg bg-card border-input text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                          <SelectValue placeholder="Type" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-card dark:bg-slate-900 border-border">
+                          <SelectItem value="all">All Logs</SelectItem>
+                          <SelectItem value="view">Views</SelectItem>
+                          <SelectItem value="download">Downloads</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    {filteredLogs.slice(0, 10).map(log => {
+                      const user = registeredUsers.find(u => u.id === log.userId);
+                      const note = notes.find(n => n.id === log.contentId);
+                      const subject = subjects.find(s => s.id === note?.subjectId);
+                      const domain = domains.find(d => d.id === subject?.domainId);
+                      return (
+                        <div key={log.id} className="p-3 rounded-lg bg-card/50 border border-transparent hover:border-border transition-all">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-lg bg-primary/5 flex items-center justify-center text-primary/60">
+                                {log.type === 'download' ? <Download size={14} /> : <Eye size={14} />}
+                              </div>
+                              <div>
+                                <p className="text-xs font-bold text-foreground">{user?.name} <span className="text-muted-foreground font-medium text-[10px] uppercase tracking-widest ml-1">{log.type}ed</span></p>
+                                <p className="text-[10px] font-medium text-muted-foreground truncate max-w-[200px]">{note?.title} • {domain?.name}</p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-[10px] font-bold text-foreground">{log.timestamp.split(' ')[1]}</p>
+                              <p className="text-[9px] font-medium text-muted-foreground opacity-60 mt-0.5">{log.timestamp.split(' ')[0]}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'messages' && (
+            <div className="space-y-10 animate-fade-in">
+              <div className="px-2">
+                <h2 className="text-2xl font-bold tracking-tight text-foreground mb-1">Message Center</h2>
+                <p className="text-muted-foreground text-sm font-medium">Coordinate inquiries and support requests.</p>
+              </div>
+
+              <div className="grid lg:grid-cols-3 gap-8 h-[calc(100vh-320px)]">
+                <div className="bg-card dark:bg-slate-900 rounded-[2.5rem] border border-border shadow-sm flex flex-col overflow-hidden">
+                  <div className="p-6 border-b border-border bg-muted/20">
+                    <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Recent Messages</h4>
+                  </div>
+                  <div className="flex-1 overflow-y-auto">
+                    {messages.map(msg => (
+                      <button
+                        key={msg.id}
+                        onClick={() => toggleMessageRead(msg.id)}
+                        className={`w-full text-left p-6 border-b border-border transition-all hover:bg-muted/30 group relative ${!msg.isRead ? 'bg-primary/[0.02]' : ''}`}
+                      >
+                        {!msg.isRead && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary" />}
+                        <div className="flex justify-between items-start mb-2">
+                          <h4 className={`text-sm ${!msg.isRead ? 'font-bold text-foreground' : 'text-muted-foreground'}`}>{msg.name}</h4>
+                          <span className="text-[10px] text-muted-foreground/40 font-medium">{msg.createdAt}</span>
+                        </div>
+                        <p className="text-[10px] font-bold text-primary mb-1 uppercase tracking-widest">{msg.subject}</p>
+                        <p className="text-xs text-muted-foreground line-clamp-1">{msg.message}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="lg:col-span-2 bg-card rounded-[2.5rem] border border-border shadow-sm flex flex-col p-8 overflow-hidden">
+                  {selectedMessage ? (
+                    <div className="animate-fade-in flex flex-col h-full">
+                      <div className="flex items-start justify-between mb-8 border-b border-border pb-8">
+                        <div className="flex items-center gap-4">
+                          <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center font-bold text-primary text-xl">
+                            {selectedMessage.name[0]}
+                          </div>
+                          <div>
+                            <h3 className="text-2xl font-bold tracking-tight text-foreground">{selectedMessage.name}</h3>
+                            <div className="flex gap-4 mt-1">
+                              <span className="text-[11px] font-medium text-muted-foreground flex items-center gap-1.5"><Mail size={14} className="opacity-40" /> {selectedMessage.email}</span>
+                              <span className="text-[11px] font-medium text-muted-foreground flex items-center gap-1.5"><Phone size={14} className="opacity-40" /> {selectedMessage.phone}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <Button
+                          className="rounded-xl h-10 px-6 font-bold text-[10px] uppercase tracking-widest"
+                          onClick={() => setIsReplyOpen(true)}
+                        >
+                          Send Reply
+                        </Button>
+                      </div>
+                      <div className="flex-1 overflow-y-auto pr-2">
+                        <div className="bg-muted/10 p-8 rounded-2xl border border-border">
+                          <h4 className="text-base font-bold mb-6 text-foreground">Subject: {selectedMessage.subject}</h4>
+                          <p className="text-sm leading-relaxed text-muted-foreground whitespace-pre-wrap">
+                            {selectedMessage.message}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="pt-8 mt-auto border-t border-border">
+                        <p className="text-[10px] font-medium text-muted-foreground/40 uppercase tracking-widest text-center">Received on {selectedMessage.createdAt}</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full text-center p-12 opacity-20">
+                      <MessageSquare size={64} strokeWidth={1.5} className="mb-6" />
+                      <h3 className="text-xl font-bold tracking-tight">Select a message</h3>
+                      <p className="text-sm font-medium mt-1">Choose a conversation from the list to view details.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-      </div>
+
+        {/* User Log Modal */}
+        {selectedUserLog && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-background/60 dark:bg-slate-950/80 backdrop-blur-md" onClick={() => setSelectedUserLog(null)} />
+            <div className="w-full max-w-2xl relative z-10 bg-card rounded-[2rem] shadow-2xl border border-border overflow-hidden">
+              <div className="p-8 border-b border-border flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center font-bold text-primary text-xl">
+                    {selectedUserLog.name.split(' ').map(n => n[0]).join('')}
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold tracking-tight">{selectedUserLog.name}</h3>
+                    <p className="text-xs text-muted-foreground">{selectedUserLog.email}</p>
+                  </div>
+                </div>
+                <Button variant="ghost" size="icon" className="rounded-full" onClick={() => setSelectedUserLog(null)}>
+                  <Plus className="rotate-45" size={20} />
+                </Button>
+              </div>
+              <div className="p-8 max-h-[60vh] overflow-y-auto">
+                <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-6">Activity History</h4>
+                <div className="space-y-3">
+                  {interactions.filter(i => i.userId === selectedUserLog.id).map(log => {
+                    const note = notes.find(n => n.id === log.contentId);
+                    return (
+                      <div key={log.id} className="flex items-center justify-between p-4 rounded-xl bg-muted/20 border border-transparent hover:border-border transition-all">
+                        <div className="flex items-center gap-4">
+                          <div className={`w-9 h-9 rounded-lg flex items-center justify-center bg-card border border-border ${log.type === 'download' ? 'text-emerald-500' : 'text-primary'}`}>
+                            {log.type === 'download' ? <Download size={14} /> : <Eye size={14} />}
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold">{log.type === 'download' ? 'Download' : 'View'}</p>
+                            <p className="text-[10px] text-muted-foreground font-medium">{note?.title || log.contentId}</p>
+                          </div>
+                        </div>
+                        <span className="text-[10px] font-bold text-muted-foreground/60">{log.timestamp}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="p-8 border-t border-border flex justify-end">
+                <Button className="rounded-xl px-8" onClick={() => setSelectedUserLog(null)}>Close</Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Reply Modal */}
+        {isReplyOpen && selectedMessage && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-background/60 dark:bg-slate-950/80 backdrop-blur-md" onClick={() => setIsReplyOpen(false)} />
+            <div className="w-full max-w-lg relative z-10 bg-card rounded-[2rem] shadow-2xl border border-border p-8">
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <h3 className="text-xl font-bold tracking-tight">Compose Reply</h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">To: {selectedMessage.email}</p>
+                </div>
+                <Button variant="ghost" size="icon" className="rounded-full" onClick={() => setIsReplyOpen(false)}>
+                  <Plus className="rotate-45" size={20} />
+                </Button>
+              </div>
+              <div className="space-y-6">
+                <div className="bg-muted/10 p-4 rounded-xl border border-border">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-2">Original Message</p>
+                  <p className="text-xs text-muted-foreground line-clamp-3 leading-relaxed">{selectedMessage.message}</p>
+                </div>
+                <textarea
+                  className="w-full h-40 bg-card border border-input rounded-xl p-4 text-sm font-medium text-foreground focus:ring-1 focus:ring-primary transition-all resize-none"
+                  placeholder="Type your response here..."
+                  value={replyText}
+                  onChange={(e) => setReplyText(e.target.value)}
+                />
+                <div className="flex gap-3">
+                  <Button variant="outline" className="flex-1 rounded-xl h-11 font-bold uppercase text-[10px] tracking-widest" onClick={() => setIsReplyOpen(false)}>Cancel</Button>
+                  <Button
+                    className="flex-[2] rounded-xl h-11 font-bold uppercase text-[10px] tracking-widest"
+                    onClick={() => {
+                      toast.success('Reply sent successfully');
+                      setIsReplyOpen(false);
+                      setReplyText('');
+                    }}
+                  >
+                    Send Message
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </main>
     </div>
   );
 };

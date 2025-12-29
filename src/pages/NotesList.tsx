@@ -10,6 +10,7 @@ import PremiumPopup from "@/components/popups/PremiumPopup";
 import SignupPopup from "@/components/popups/SignupPopup";
 import UserInfoPopup from "@/components/popups/UserInfoPopup";
 import { toast } from "sonner";
+import BackgroundAtmosphere from "@/components/ui/BackgroundAtmosphere";
 
 // Sample notes data
 const notesData: Record<string, { id: string; title: string; description: string; isPremium: boolean; pages: number; readTime: string; date: string }[]> = {
@@ -135,15 +136,8 @@ const NotesList = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background font-sans relative overflow-hidden">
-      {/* Background Atmosphere */}
-      <div className="fixed inset-0 -z-10 bg-mesh opacity-[0.15] lg:opacity-40" />
-
-      {/* Animated Background Blobs - Subtler for mobile */}
-      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none opacity-40 lg:opacity-100">
-        <div className="absolute -top-[10%] -left-[10%] w-[70%] lg:w-[40%] h-[40%] bg-primary/5 lg:bg-primary/10 rounded-full blur-[80px] lg:blur-[120px] animate-pulse-glow" style={{ animationDelay: '0s' }} />
-        <div className="absolute top-[20%] -right-[5%] w-[60%] lg:w-[35%] h-[35%] bg-cyan-400/5 lg:bg-cyan-400/10 rounded-full blur-[60px] lg:blur-[100px] animate-pulse-glow" style={{ animationDelay: '2s' }} />
-      </div>
+    <div className="min-h-screen bg-transparent font-sans relative overflow-hidden">
+      <BackgroundAtmosphere />
 
       <Navbar />
       <main className="pt-24 lg:pt-40 pb-12 lg:pb-32 px-4 lg:px-8 relative z-10">
@@ -154,8 +148,8 @@ const NotesList = () => {
             {/* Back Button */}
             <div className="flex items-center text-xs lg:text-sm font-medium text-muted-foreground">
               <Link to={`/study/${courseType}/${domain}`} className="flex items-center gap-1.5 hover:text-primary transition-colors group">
-                <span className="bg-white p-1.5 lg:p-2 rounded-xl shadow-sm border border-gray-100 group-hover:bg-primary/5 transition-colors">
-                  <ChevronLeft size={16} className="text-gray-400 group-hover:text-primary" />
+                <span className="glass-card bg-slate-900/40 p-1.5 lg:p-2 rounded-xl shadow-sm border-white/5 group-hover:bg-primary/10 transition-colors">
+                  <ChevronLeft size={16} className="text-muted-foreground group-hover:text-primary" />
                 </span>
                 <span className="font-bold">Back to Subjects</span>
               </Link>
@@ -163,7 +157,7 @@ const NotesList = () => {
 
             {/* Heading & Badge */}
             <div className="space-y-1.5 lg:space-y-4">
-              <div className="inline-flex items-center gap-2 bg-blue-50/50 text-blue-600 px-2.5 py-1 rounded-full text-[10px] lg:text-xs font-bold uppercase tracking-wider border border-blue-100/50 backdrop-blur-sm">
+              <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-2.5 py-1 rounded-full text-[10px] lg:text-xs font-bold uppercase tracking-widest border border-primary/20 backdrop-blur-sm shadow-inner">
                 <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
                 {notes.length} Modules Available
               </div>
@@ -180,7 +174,7 @@ const NotesList = () => {
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors" size={18} />
               <Input
                 placeholder="Search topic or keywords..."
-                className="w-full h-12 lg:h-14 pl-12 rounded-2xl lg:rounded-[1.25rem] bg-white border-gray-200 shadow-sm focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all font-medium text-sm lg:text-base border-2"
+                className="w-full h-12 lg:h-14 pl-12 rounded-2xl lg:rounded-[1.25rem] bg-white/5 border-white/5 shadow-sm focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all font-medium text-sm lg:text-base border-2 text-foreground"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -199,35 +193,35 @@ const NotesList = () => {
                   className="group relative animate-fade-up"
                   style={{ animationDelay: `${index * 0.05}s` }}
                 >
-                  <div className={`bg-white rounded-2xl lg:rounded-[1.5rem] p-4 lg:p-6 border border-gray-100 flex flex-col sm:flex-row items-start sm:items-center gap-4 lg:gap-6 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:border-primary/20 ${note.isPremium && !auth.user?.isPremium ? 'opacity-90' : ''}`}>
+                  <div className={`glass-card bg-slate-900/20 backdrop-blur-xl rounded-2xl lg:rounded-[1.5rem] p-4 lg:p-6 border-white/5 flex flex-col sm:flex-row items-start sm:items-center gap-4 lg:gap-6 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:border-primary/20 ${note.isPremium && !auth.user?.isPremium ? 'opacity-90' : ''}`}>
 
                     {/* Icon */}
-                    <div className={`w-12 h-12 lg:w-16 lg:h-16 rounded-xl lg:rounded-2xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-105 shadow-sm ${note.isPremium ? 'bg-amber-50 text-amber-500' : 'bg-red-50 text-red-500'}`}>
+                    <div className={`w-12 h-12 lg:w-16 lg:h-16 rounded-xl lg:rounded-2xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-105 shadow-inner ${note.isPremium ? 'bg-amber-500/10 text-amber-500' : 'bg-red-500/10 text-red-500'}`}>
                       {note.isPremium ? <Crown size={20} className="lg:w-7 lg:h-7" /> : <FileText size={20} className="lg:w-7 lg:h-7" />}
                     </div>
 
                     {/* Content */}
                     <div className="flex-grow min-w-0 space-y-1 lg:space-y-2">
                       <div className="flex items-center gap-2 lg:gap-3">
-                        <h3 className="font-display text-base lg:text-xl font-bold text-gray-900 group-hover:text-primary transition-colors sm:truncate">
+                        <h3 className="font-display text-base lg:text-xl font-bold text-foreground group-hover:text-primary transition-colors sm:truncate">
                           {note.title}
                         </h3>
                         {note.isPremium && (
-                          <span className="bg-amber-100 text-amber-700 text-[8px] lg:text-[10px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wide shrink-0">
+                          <span className="bg-amber-500/10 text-amber-500 text-[8px] lg:text-[10px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-widest shrink-0 border border-amber-500/20 shadow-inner">
                             Premium
                           </span>
                         )}
                       </div>
-                      <p className="text-gray-500 text-xs lg:text-sm line-clamp-2 sm:line-clamp-1 leading-relaxed">{note.description}</p>
+                      <p className="text-muted-foreground text-xs lg:text-sm line-clamp-2 sm:line-clamp-1 leading-relaxed font-medium">{note.description}</p>
 
-                      <div className="flex flex-wrap items-center gap-2 lg:gap-3 text-[10px] lg:text-xs font-bold text-gray-400 pt-1">
-                        <span className="flex items-center gap-1.5 bg-gray-50/80 px-2 py-1 rounded-lg border border-gray-100">
+                      <div className="flex flex-wrap items-center gap-2 lg:gap-3 text-[10px] lg:text-xs font-black text-muted-foreground/40 pt-1 uppercase tracking-widest">
+                        <span className="flex items-center gap-1.5 bg-white/5 px-2 py-1 rounded-lg border border-white/5">
                           <FileText size={12} className="text-primary/70" /> {note.pages} pages
                         </span>
-                        <span className="flex items-center gap-1.5 bg-gray-50/80 px-2 py-1 rounded-lg border border-gray-100">
+                        <span className="flex items-center gap-1.5 bg-white/5 px-2 py-1 rounded-lg border border-white/5">
                           <Clock size={12} className="text-primary/70" /> {note.readTime}
                         </span>
-                        <span className="bg-gray-50/80 px-2 py-1 rounded-lg border border-gray-100 text-gray-400">
+                        <span className="bg-white/5 px-2 py-1 rounded-lg border border-white/5 text-muted-foreground/40">
                           {note.date}
                         </span>
                       </div>
@@ -235,7 +229,7 @@ const NotesList = () => {
 
                     {/* Action */}
                     <div className="mt-4 sm:mt-0 w-full sm:w-auto shrink-0">
-                      <Button variant="outline" className={`w-full sm:w-32 rounded-xl font-bold h-10 lg:h-12 border-gray-100 group-hover:bg-primary group-hover:text-white group-hover:border-primary transition-all text-xs lg:text-base ${note.isPremium && !auth.user?.isPremium ? 'bg-gray-50 text-gray-400 group-hover:bg-gray-100 group-hover:text-gray-500 group-hover:border-gray-200 cursor-not-allowed' : ''}`}>
+                      <Button variant="outline" className={`w-full sm:w-32 rounded-xl font-bold h-10 lg:h-12 border-white/5 group-hover:bg-primary group-hover:text-white group-hover:border-primary transition-all text-xs lg:text-base ${note.isPremium && !auth.user?.isPremium ? 'bg-white/5 text-muted-foreground/40 group-hover:bg-white/10 group-hover:text-muted-foreground/60 group-hover:border-white/10 cursor-not-allowed' : 'bg-primary text-white shadow-lg shadow-primary/20'}`}>
                         {note.isPremium && !auth.user?.isPremium ? (
                           <><Lock size={14} className="mr-1.5 lg:w-4 lg:h-4" /> Locked</>
                         ) : (
@@ -247,12 +241,12 @@ const NotesList = () => {
                 </Link>
               ))
             ) : (
-              <div className="text-center py-24 bg-white rounded-[2.5rem] border border-dashed border-gray-200">
-                <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Search className="text-gray-400" size={24} />
+              <div className="text-center py-24 glass-card bg-slate-900/10 backdrop-blur-xl border border-dashed border-white/5 rounded-[2.5rem]">
+                <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Search className="text-muted-foreground/40" size={24} />
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-1">No notes found</h3>
-                <p className="text-gray-500">Try adjusting your search terms</p>
+                <h3 className="text-lg font-bold text-foreground mb-1">No notes found</h3>
+                <p className="text-muted-foreground font-medium italic opacity-60">Try adjusting your search terms</p>
               </div>
             )}
           </div>

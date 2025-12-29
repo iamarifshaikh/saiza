@@ -9,6 +9,7 @@ import PremiumPopup from "@/components/popups/PremiumPopup";
 import SignupPopup from "@/components/popups/SignupPopup";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import BackgroundAtmosphere from "@/components/ui/BackgroundAtmosphere";
 
 const NotesViewer = () => {
   const { courseType, domain, subject } = useParams();
@@ -118,7 +119,8 @@ const NotesViewer = () => {
   };
 
   return (
-    <div className={cn("min-h-screen font-sans flex flex-col", isFocusMode ? "bg-[#0c0c0c]" : "bg-gray-100")}>
+    <div className={cn("min-h-screen font-sans flex flex-col transition-colors duration-700 relative overflow-hidden", isFocusMode ? "bg-[#050505]" : "bg-transparent")}>
+      {!isFocusMode && <BackgroundAtmosphere />}
       {!isFocusMode && <Navbar />}
 
       {!isFocusMode ? (
@@ -126,19 +128,19 @@ const NotesViewer = () => {
           <div className="container mx-auto max-w-7xl h-full flex flex-col">
 
             {/* Header Bar */}
-            <div className="bg-white rounded-[1.5rem] p-4 lg:p-6 shadow-sm border border-gray-200 mb-4 lg:mb-6 flex flex-col md:flex-row items-center justify-between gap-4 animate-fade-in relative z-20">
+            <div className="glass-card bg-slate-900/40 backdrop-blur-xl rounded-[1.5rem] p-4 lg:p-6 shadow-2xl border-white/5 mb-4 lg:mb-6 flex flex-col md:flex-row items-center justify-between gap-4 animate-fade-in relative z-20">
               <div className="flex items-center gap-3 lg:gap-4 w-full md:w-auto">
                 <Link
                   to={`/study/${courseType}/${domain}/${subject}`}
-                  className="w-9 h-9 lg:w-10 lg:h-10 rounded-full bg-gray-50 flex items-center justify-center hover:bg-gray-100 transition-colors shrink-0"
+                  className="w-9 h-9 lg:w-10 lg:h-10 rounded-full bg-white/5 border border-white/5 flex items-center justify-center hover:bg-white/10 transition-colors shrink-0"
                 >
-                  <ArrowLeft size={18} className="lg:w-5 lg:h-5" />
+                  <ArrowLeft size={18} className="lg:w-5 lg:h-5 text-foreground" />
                 </Link>
                 <div className="min-w-0 flex-1">
-                  <h1 className="font-display text-base lg:text-xl font-bold line-clamp-1">
+                  <h1 className="font-display text-base lg:text-xl font-bold line-clamp-1 text-foreground">
                     {noteDetails.title}
                   </h1>
-                  <p className="text-[10px] lg:text-sm text-gray-500 flex items-center gap-2">
+                  <p className="text-[10px] lg:text-sm text-muted-foreground flex items-center gap-2 font-medium">
                     <span className="flex items-center gap-1"><FileText size={10} className="lg:w-3 lg:h-3" /> Page {currentPage} of {noteDetails.pages}</span>
                     <span>•</span>
                     <span className="truncate">{noteDetails.author}</span>
@@ -157,7 +159,7 @@ const NotesViewer = () => {
                     }}
                     className={cn(
                       "rounded-full px-2 lg:px-4 h-9 lg:h-10 font-bold flex items-center gap-2 transition-all text-xs lg:text-sm",
-                      isSaved ? "bg-primary/10 text-primary hover:bg-primary/20" : "text-gray-500 hover:bg-gray-100"
+                      isSaved ? "bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20" : "text-muted-foreground bg-white/5 border border-white/5 hover:bg-white/10 hover:text-foreground"
                     )}
                   >
                     {isSaved ? <Check size={16} /> : <Plus size={16} />}
@@ -198,9 +200,9 @@ const NotesViewer = () => {
                 onContextMenu={(e) => e.preventDefault()}
               >
                 {isLoading ? (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-white rounded-[1.5rem] lg:rounded-[2rem] shadow-sm">
-                    <div className="w-10 h-10 lg:w-12 lg:h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin mb-4" />
-                    <p className="text-sm lg:text-base text-gray-500 font-medium animate-pulse">Loading Document...</p>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/40 backdrop-blur-xl rounded-[1.5rem] lg:rounded-[2rem] border border-white/5 shadow-2xl">
+                    <div className="w-10 h-10 lg:w-12 lg:h-12 border-4 border-primary/10 border-t-primary rounded-full animate-spin mb-4" />
+                    <p className="text-sm lg:text-base text-muted-foreground font-black uppercase tracking-[0.2em] animate-pulse opacity-60">Initializing Reader</p>
                   </div>
                 ) : !showPremiumBlock ? (
                   <div className="w-full h-full flex flex-col items-center justify-center relative">
@@ -209,7 +211,7 @@ const NotesViewer = () => {
                     <button
                       onClick={() => changePage('prev')}
                       disabled={currentPage === 1}
-                      className="hidden lg:flex absolute left-[-24px] top-1/2 -translate-y-1/2 z-30 w-12 h-12 rounded-full bg-white shadow-xl border border-gray-100 items-center justify-center text-gray-700 hover:text-primary hover:scale-110 disabled:opacity-0 disabled:pointer-events-none transition-all duration-300"
+                      className="hidden lg:flex absolute left-[-24px] top-1/2 -translate-y-1/2 z-30 w-12 h-12 rounded-full bg-slate-900/60 backdrop-blur-xl shadow-2xl border border-white/5 items-center justify-center text-foreground hover:text-primary hover:scale-110 disabled:opacity-0 disabled:pointer-events-none transition-all duration-300"
                     >
                       <ChevronLeft size={24} />
                     </button>
@@ -217,24 +219,24 @@ const NotesViewer = () => {
                     <button
                       onClick={() => changePage('next')}
                       disabled={currentPage >= 10}
-                      className="hidden lg:flex absolute right-[-24px] top-1/2 -translate-y-1/2 z-30 w-12 h-12 rounded-full bg-white shadow-xl border border-gray-100 items-center justify-center text-gray-700 hover:text-primary hover:scale-110 disabled:opacity-0 disabled:pointer-events-none transition-all duration-300"
+                      className="hidden lg:flex absolute right-[-24px] top-1/2 -translate-y-1/2 z-30 w-12 h-12 rounded-full bg-slate-900/60 backdrop-blur-xl shadow-2xl border border-white/5 items-center justify-center text-foreground hover:text-primary hover:scale-110 disabled:opacity-0 disabled:pointer-events-none transition-all duration-300"
                     >
                       <ChevronRight size={24} />
                     </button>
 
                     {/* Mobile Navigation Toolbar (Fixed/Sticky at Bottom) */}
-                    <div className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] bg-white/80 backdrop-blur-md rounded-full border border-white/40 shadow-2xl p-2 flex items-center gap-2 px-4">
+                    <div className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] bg-slate-900/80 backdrop-blur-md rounded-full border border-white/10 shadow-2xl p-2 flex items-center gap-2 px-4">
                       <button
                         onClick={() => changePage('prev')}
                         disabled={currentPage === 1}
-                        className="w-10 h-10 rounded-full flex items-center justify-center text-gray-700 hover:text-primary disabled:opacity-30"
+                        className="w-10 h-10 rounded-full flex items-center justify-center text-foreground hover:text-primary disabled:opacity-30"
                       >
                         <ChevronLeft size={24} />
                       </button>
 
                       <button
                         onClick={() => setShowTopicsDrawer(true)}
-                        className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-full text-xs font-bold shadow-lg active:scale-95 transition-all"
+                        className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-full text-xs font-bold shadow-lg active:scale-95 transition-all shadow-primary/20"
                       >
                         <BookOpen size={14} />
                         Topics
@@ -243,7 +245,7 @@ const NotesViewer = () => {
                       <button
                         onClick={() => changePage('next')}
                         disabled={currentPage >= 10}
-                        className="w-10 h-10 rounded-full flex items-center justify-center text-gray-700 hover:text-primary disabled:opacity-30"
+                        className="w-10 h-10 rounded-full flex items-center justify-center text-foreground hover:text-primary disabled:opacity-30"
                       >
                         <ChevronRight size={24} />
                       </button>
@@ -334,14 +336,14 @@ const NotesViewer = () => {
               {/* Sidebar (Desktop only) */}
               <div className="hidden lg:block lg:col-span-3 space-y-6">
                 {/* TOC */}
-                <div className="bg-white rounded-[1.5rem] p-6 border border-gray-200 lg:sticky lg:top-24">
-                  <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+                <div className="glass-card bg-slate-900/40 backdrop-blur-xl rounded-[1.5rem] p-6 border-white/5 lg:sticky lg:top-24 shadow-2xl">
+                  <h3 className="font-bold text-lg mb-4 flex items-center gap-2 text-foreground">
                     <BookOpen size={18} className="text-primary" />
                     Topics Covered
                   </h3>
                   <div className="space-y-3 relative max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
                     {/* Timeline line */}
-                    <div className="absolute left-[7px] top-2 bottom-2 w-0.5 bg-gray-100" />
+                    <div className="absolute left-[7px] top-2 bottom-2 w-0.5 bg-white/5" />
 
                     {["Introduction", "Basic Concepts", "Implementation", "Complexity Analysis", "Cases", "Conclusion"].map((topic, i) => (
                       <div
@@ -357,11 +359,11 @@ const NotesViewer = () => {
                       >
                         <div className={cn(
                           "w-4 h-4 rounded-full border-2 mt-1 z-10 transition-colors",
-                          currentPage === i + 1 ? "bg-primary border-primary" : "bg-white border-gray-300 group-hover:border-primary"
+                          currentPage === i + 1 ? "bg-primary border-primary shadow-[0_0_10px_rgba(12,165,233,0.5)]" : "bg-slate-900 border-white/20 group-hover:border-primary"
                         )} />
                         <p className={cn(
                           "text-sm font-medium leading-tight pt-0.5 transition-colors",
-                          currentPage === i + 1 ? "text-primary font-bold" : "text-gray-600 group-hover:text-primary"
+                          currentPage === i + 1 ? "text-primary font-bold" : "text-muted-foreground group-hover:text-primary"
                         )}>
                           {topic}
                         </p>
@@ -374,7 +376,10 @@ const NotesViewer = () => {
           </div>
         </main>
       ) : (
-        <div className="fixed inset-0 z-[200] bg-[#0c0c0c] flex flex-col items-center justify-center overflow-hidden animate-fade-in">
+        <div className="fixed inset-0 z-[200] bg-background flex flex-col items-center justify-center overflow-hidden animate-fade-in transition-colors duration-1000">
+          <div className="absolute inset-0 bg-mesh opacity-20 pointer-events-none" />
+          <div className="absolute top-[-25%] left-[-10%] w-[80%] h-[80%] bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
+
           {/* Minimalist Focus Header */}
           <div className="fixed top-0 left-0 right-0 p-4 lg:p-6 flex items-center justify-between z-[210] safe-top">
             <div className="flex items-center gap-4">

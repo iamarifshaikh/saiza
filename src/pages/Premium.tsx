@@ -1,7 +1,7 @@
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
-import { Check, Crown, Download, ShieldCheck, Sparkles, Headphones } from "lucide-react";
+import { Check, Crown, Download, ShieldCheck, Headphones } from "lucide-react";
 
 const Premium = () => {
     return (
@@ -34,36 +34,36 @@ const Premium = () => {
                             <h2 className="font-display text-3xl font-bold mb-8">Why Go Premium?</h2>
 
                             <div className="grid sm:grid-cols-2 gap-6">
-                                <div className="bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm hover:shadow-md transition-all">
+                                <div className="card-premium dark:glass-card dark:bg-slate-900/20 backdrop-blur-xl rounded-[2rem] p-8 border-primary/10 dark:border-white/5 shadow-premium transition-all group">
                                     <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center mb-4 text-primary">
                                         <ShieldCheck size={28} />
                                     </div>
-                                    <h3 className="font-bold text-xl mb-2">Verified Content</h3>
-                                    <p className="text-muted-foreground text-sm leading-relaxed">Access notes verified by top professors and university toppers.</p>
+                                    <h3 className="font-display font-bold text-xl mb-2 italic">Verified Content</h3>
+                                    <p className="text-muted-foreground text-sm leading-relaxed font-medium">Access notes verified by top professors and university toppers.</p>
                                 </div>
 
-                                <div className="bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm hover:shadow-md transition-all">
-                                    <div className="w-12 h-12 rounded-2xl bg-orange-500/10 flex items-center justify-center mb-4 text-orange-500">
+                                <div className="card-premium dark:glass-card dark:bg-slate-900/20 backdrop-blur-xl rounded-[2rem] p-8 border-primary/10 dark:border-white/5 shadow-premium transition-all group">
+                                    <div className="w-12 h-12 rounded-2xl bg-orange-500/10 flex items-center justify-center mb-4 text-orange-600 dark:text-orange-500">
                                         <Download size={28} />
                                     </div>
-                                    <h3 className="font-bold text-xl mb-2">Offline Downloads</h3>
-                                    <p className="text-muted-foreground text-sm leading-relaxed">Save notes to your device and study without internet connectivity.</p>
+                                    <h3 className="font-display font-bold text-xl mb-2 italic">Offline Downloads</h3>
+                                    <p className="text-muted-foreground text-sm leading-relaxed font-medium">Save notes to your device and study without internet connectivity.</p>
                                 </div>
 
-                                <div className="bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm hover:shadow-md transition-all">
-                                    <div className="w-12 h-12 rounded-2xl bg-purple-500/10 flex items-center justify-center mb-4 text-purple-500">
+                                <div className="card-premium dark:glass-card dark:bg-slate-900/20 backdrop-blur-xl rounded-[2rem] p-8 border-primary/10 dark:border-white/5 shadow-premium transition-all group">
+                                    <div className="w-12 h-12 rounded-2xl bg-purple-500/10 flex items-center justify-center mb-4 text-purple-600 dark:text-purple-500">
                                         <Headphones size={28} />
                                     </div>
-                                    <h3 className="font-bold text-xl mb-2">Priority Support</h3>
-                                    <p className="text-muted-foreground text-sm leading-relaxed">Get your academic doubts resolved quickly by our expert team.</p>
+                                    <h3 className="font-display font-bold text-xl mb-2 italic">Priority Support</h3>
+                                    <p className="text-muted-foreground text-sm leading-relaxed font-medium">Get your academic doubts resolved quickly by our expert team.</p>
                                 </div>
 
-                                <div className="bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm hover:shadow-md transition-all">
-                                    <div className="w-12 h-12 rounded-2xl bg-green-500/10 flex items-center justify-center mb-4 text-green-500">
-                                        <Sparkles size={28} />
+                                <div className="card-premium dark:glass-card dark:bg-slate-900/20 backdrop-blur-xl rounded-[2rem] p-8 border-primary/10 dark:border-white/5 shadow-premium transition-all group">
+                                    <div className="w-12 h-12 rounded-2xl bg-green-500/10 flex items-center justify-center mb-4 text-green-600 dark:text-green-500">
+                                        <Check size={28} />
                                     </div>
-                                    <h3 className="font-bold text-xl mb-2">Exam Blueprints</h3>
-                                    <p className="text-muted-foreground text-sm leading-relaxed">Exclusive access to previous year paper analysis & scoring blueprints.</p>
+                                    <h3 className="font-display font-bold text-xl mb-2 italic">Exam Blueprints</h3>
+                                    <p className="text-muted-foreground text-sm leading-relaxed font-medium">Exclusive access to previous year paper analysis & scoring blueprints.</p>
                                 </div>
                             </div>
                         </div>
@@ -73,8 +73,8 @@ const Premium = () => {
                             {/* Glow Effect */}
                             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-[120%] bg-gradient-to-tr from-primary/30 to-purple-500/30 blur-3xl -z-10 rounded-full opacity-70" />
 
-                            <div className="bg-[#18181b] text-white rounded-[2.5rem] p-8 lg:p-10 relative overflow-hidden shadow-2xl border border-white/10">
-                                <div className="absolute top-0 right-0 bg-primary text-white text-xs font-bold px-4 py-2 rounded-bl-2xl">
+                            <div className="card-premium dark:glass-card dark:bg-slate-900/40 backdrop-blur-xl text-foreground dark:text-white rounded-[2.5rem] p-8 lg:p-10 relative overflow-hidden shadow-premium dark:shadow-2xl border-primary/10 dark:border-white/5">
+                                <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-[10px] font-black px-5 py-2.5 rounded-bl-3xl tracking-widest uppercase">
                                     MOST POPULAR
                                 </div>
 

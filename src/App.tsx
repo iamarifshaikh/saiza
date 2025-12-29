@@ -21,48 +21,55 @@ import Preloader from "@/components/ui/Preloader";
 import ProfileCompletionHandler from "@/components/auth/ProfileCompletionHandler";
 import { AuthProvider } from "@/hooks/useAuth";
 
+import { ThemeProvider } from "@/hooks/useTheme";
+
 const queryClient = new QueryClient();
 
 const App = () => {
-  const [isLoading, setIsLoading] = useState(true);
+  // For admin route, we skip the global loading state immediately
+  const [isLoading, setIsLoading] = useState(!window.location.pathname.startsWith('/admin'));
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <AuthProvider>
-          <Toaster />
-          <Sonner />
+      <ThemeProvider>
+        <TooltipProvider>
+          <AuthProvider>
+            <Toaster />
+            <Sonner />
 
-          <BrowserRouter>
-            {/* Preloader overlay */}
-            <Preloader onComplete={() => setIsLoading(false)} />
+            <BrowserRouter>
+              {/* Preloader overlay - skip for admin as it has specialized preloaders */}
+              {!window.location.pathname.startsWith('/admin') && (
+                <Preloader onComplete={() => setIsLoading(false)} />
+              )}
 
-            {/* Custom Cursor needs to be inside AuthProvider */}
-            <CustomCursor />
+              {/* Custom Cursor needs to be inside AuthProvider */}
+              <CustomCursor />
 
-            {!isLoading && (
-              <>
-                <ProfileCompletionHandler />
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/auth" element={<Auth />} />
-                  <Route path="/login" element={<Auth />} />
-                  <Route path="/study" element={<Study />} />
-                  <Route path="/study/:courseType" element={<Domains />} />
-                  <Route path="/study/:courseType/:domain" element={<Subjects />} />
-                  <Route path="/study/:courseType/:domain/:subject" element={<NotesList />} />
-                  <Route path="/study/:courseType/:domain/:subject/:noteId" element={<NotesViewer />} />
-                  <Route path="/premium" element={<Premium />} />
-                  <Route path="/contact" element={<Contact />} />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/admin" element={<Admin />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </>
-            )}
-          </BrowserRouter>
-        </AuthProvider>
-      </TooltipProvider>
+              {!isLoading && (
+                <>
+                  <ProfileCompletionHandler />
+                  <Routes>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/auth" element={<Auth />} />
+                    <Route path="/login" element={<Auth />} />
+                    <Route path="/study" element={<Study />} />
+                    <Route path="/study/:courseType" element={<Domains />} />
+                    <Route path="/study/:courseType/:domain" element={<Subjects />} />
+                    <Route path="/study/:courseType/:domain/:subject" element={<NotesList />} />
+                    <Route path="/study/:courseType/:domain/:subject/:noteId" element={<NotesViewer />} />
+                    <Route path="/premium" element={<Premium />} />
+                    <Route path="/contact" element={<Contact />} />
+                    <Route path="/profile" element={<Profile />} />
+                    <Route path="/admin" element={<Admin />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </>
+              )}
+            </BrowserRouter>
+          </AuthProvider>
+        </TooltipProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 };

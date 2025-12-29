@@ -76,7 +76,7 @@ const Profile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans">
+    <div className="min-h-screen bg-background font-sans">
       <Navbar />
 
       <main className="pt-24 lg:pt-32 pb-16 lg:pb-24 px-4 lg:px-8">
@@ -144,7 +144,7 @@ const Profile = () => {
           <div className="grid lg:grid-cols-12 gap-8">
             {/* Sidebar Navigation */}
             <div className="lg:col-span-3 space-y-3">
-              <div className="bg-white p-4 rounded-[2rem] border border-gray-100 shadow-sm">
+              <div className="glass-card bg-slate-900/20 backdrop-blur-xl p-4 rounded-[2rem] border-white/5 shadow-sm">
                 {[
                   { id: 'overview', label: 'Overview', icon: LayoutDashboard },
                   { id: 'collections', label: 'Collections', icon: FolderHeart },
@@ -157,11 +157,11 @@ const Profile = () => {
                     className={cn(
                       "w-full flex items-center gap-3 px-5 py-4 rounded-xl transition-all duration-200 font-medium text-sm lg:text-base group",
                       activeTab === tab.id
-                        ? "bg-gray-100 text-gray-900 font-bold"
-                        : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                        ? "bg-white/5 text-foreground font-bold"
+                        : "text-muted-foreground hover:text-foreground hover:bg-white/5"
                     )}
                   >
-                    <tab.icon size={20} className={cn("transition-colors", activeTab === tab.id ? "text-gray-900" : "text-gray-400 group-hover:text-gray-600")} />
+                    <tab.icon size={20} className={cn("transition-colors", activeTab === tab.id ? "text-primary" : "text-muted-foreground/60 group-hover:text-foreground")} />
                     {tab.label}
                   </button>
                 ))}
@@ -176,33 +176,33 @@ const Profile = () => {
                 <div className="animate-fade-up">
                   {/* Stats Grid */}
                   <div className="grid sm:grid-cols-3 gap-6 mb-10">
-                    <div className="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-sm relative overflow-hidden hover:shadow-md transition-all">
-                      <div className="w-14 h-14 bg-orange-50 rounded-2xl flex items-center justify-center text-orange-500 mb-6">
+                    <div className="glass-card bg-slate-900/20 backdrop-blur-xl p-8 rounded-[2rem] border-white/5 shadow-sm relative overflow-hidden hover:shadow-md transition-all">
+                      <div className="w-14 h-14 bg-orange-500/10 rounded-2xl flex items-center justify-center text-orange-500 mb-6">
                         <Flame size={28} fill="currentColor" />
                       </div>
-                      <p className="text-4xl font-bold font-display mb-1 text-gray-900">12</p>
-                      <p className="text-sm text-gray-400 font-bold uppercase tracking-wider">Day Streak</p>
+                      <p className="text-4xl font-bold font-display mb-1 text-foreground">12</p>
+                      <p className="text-sm text-muted-foreground font-bold uppercase tracking-wider">Day Streak</p>
                     </div>
-                    <div className="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-sm relative overflow-hidden hover:shadow-md transition-all">
-                      <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-500 mb-6">
+                    <div className="glass-card bg-slate-900/20 backdrop-blur-xl p-8 rounded-[2rem] border-white/5 shadow-sm relative overflow-hidden hover:shadow-md transition-all">
+                      <div className="w-14 h-14 bg-blue-500/10 rounded-2xl flex items-center justify-center text-blue-500 mb-6">
                         <BookOpen size={28} />
                       </div>
-                      <p className="text-4xl font-bold font-display mb-1 text-gray-900">45</p>
-                      <p className="text-sm text-gray-400 font-bold uppercase tracking-wider">Notes Read</p>
+                      <p className="text-4xl font-bold font-display mb-1 text-foreground">45</p>
+                      <p className="text-sm text-muted-foreground font-bold uppercase tracking-wider">Notes Read</p>
                     </div>
-                    <div className="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-sm relative overflow-hidden hover:shadow-md transition-all">
-                      <div className="w-14 h-14 bg-purple-50 rounded-2xl flex items-center justify-center text-purple-500 mb-6">
+                    <div className="glass-card bg-slate-900/20 backdrop-blur-xl p-8 rounded-[2rem] border-white/5 shadow-sm relative overflow-hidden hover:shadow-md transition-all">
+                      <div className="w-14 h-14 bg-purple-500/10 rounded-2xl flex items-center justify-center text-purple-500 mb-6">
                         <Clock size={28} />
                       </div>
-                      <p className="text-4xl font-bold font-display mb-1 text-gray-900">28h</p>
-                      <p className="text-sm text-gray-400 font-bold uppercase tracking-wider">Study Time</p>
+                      <p className="text-4xl font-bold font-display mb-1 text-foreground">28h</p>
+                      <p className="text-sm text-muted-foreground font-bold uppercase tracking-wider">Study Time</p>
                     </div>
                   </div>
 
                   {/* Profile Edit Card */}
-                  <div className="bg-white rounded-[2.5rem] p-8 lg:p-10 border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+                  <div className="glass-card bg-slate-900/10 backdrop-blur-xl rounded-[2.5rem] p-8 lg:p-10 border-white/5 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
                     <div className="flex items-center justify-between mb-8">
-                      <h2 className="text-xl font-bold">Personal Details</h2>
+                      <h2 className="text-xl font-bold text-foreground">Personal Details</h2>
                       <Button
                         variant="ghost"
                         className="text-primary hover:text-primary hover:bg-primary/5"
@@ -239,16 +239,16 @@ const Profile = () => {
                           disabled={!isEditing}
                           value={editData.college}
                           onChange={e => setEditData({ ...editData, college: e.target.value })}
-                          className="h-12 rounded-xl bg-gray-50 border-transparent focus:bg-white transition-all"
+                          className="h-12 rounded-xl bg-white/5 border-transparent focus:bg-white/10 text-foreground transition-all"
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-500">Semester</label>
+                        <label className="text-sm font-bold text-muted-foreground uppercase tracking-widest opacity-60">Semester</label>
                         <Input
                           disabled={!isEditing}
                           value={editData.semester}
                           onChange={e => setEditData({ ...editData, semester: e.target.value })}
-                          className="h-12 rounded-xl bg-gray-50 border-transparent focus:bg-white transition-all"
+                          className="h-12 rounded-xl bg-white/5 border-transparent focus:bg-white/10 text-foreground transition-all"
                         />
                       </div>
                     </div>
@@ -263,7 +263,7 @@ const Profile = () => {
                     <h2 className="text-2xl font-bold">My Collections</h2>
                     <Dialog open={isCreatePlaylistOpen} onOpenChange={setIsCreatePlaylistOpen}>
                       <DialogTrigger asChild>
-                        <Button className="rounded-full bg-black text-white hover:bg-gray-800">
+                        <Button className="rounded-full bg-primary text-white hover:bg-primary/90 font-bold shadow-lg shadow-primary/20 uppercase tracking-widest text-[10px] h-10 px-6">
                           <Plus size={18} className="mr-2" /> New Collection
                         </Button>
                       </DialogTrigger>
@@ -276,35 +276,35 @@ const Profile = () => {
                             placeholder="Collection name (e.g. Exam Prep)"
                             value={newPlaylistName}
                             onChange={(e) => setNewPlaylistName(e.target.value)}
-                            className="h-12 rounded-xl"
+                            className="h-12 rounded-xl bg-white/5 border-white/5 text-foreground focus:ring-1 focus:ring-primary/30 transition-all font-medium"
                           />
-                          <Button className="w-full" onClick={handleCreatePlaylist}>Create Collection</Button>
+                          <Button className="w-full bg-primary hover:bg-primary/90 text-white font-bold h-12 rounded-xl shadow-lg shadow-primary/20" onClick={handleCreatePlaylist}>Create Collection</Button>
                         </div>
                       </DialogContent>
                     </Dialog>
                   </div>
 
                   {auth.myWordsPlaylists.length === 0 ? (
-                    <div className="bg-white rounded-[2rem] p-12 text-center border border-dashed border-gray-200">
-                      <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-400">
+                    <div className="glass-card bg-slate-900/10 backdrop-blur-xl rounded-[2rem] p-12 text-center border-white/5 border-dashed">
+                      <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4 text-muted-foreground/60">
                         <FolderHeart size={32} />
                       </div>
-                      <p className="text-gray-500 font-medium">No collections created yet.</p>
+                      <p className="text-muted-foreground font-medium">No collections created yet.</p>
                     </div>
                   ) : (
                     <div className="grid md:grid-cols-2 gap-4">
                       {auth.myWordsPlaylists.map(playlist => (
-                        <div key={playlist.id} className="bg-white p-6 rounded-[1.5rem] border border-gray-100 hover:shadow-md transition-all group relative">
+                        <div key={playlist.id} className="glass-card bg-slate-900/20 backdrop-blur-xl p-6 rounded-[1.5rem] border-white/5 hover:shadow-md transition-all group relative">
                           <div className="flex items-start justify-between mb-4">
-                            <div className="w-12 h-12 bg-pink-50 text-pink-500 rounded-xl flex items-center justify-center">
+                            <div className="w-12 h-12 bg-pink-500/10 text-pink-500 rounded-xl flex items-center justify-center">
                               <FolderHeart size={24} />
                             </div>
-                            <button onClick={() => handleDeletePlaylist(playlist.id)} className="text-gray-400 hover:text-red-500 transition-colors">
+                            <button onClick={() => handleDeletePlaylist(playlist.id)} className="text-muted-foreground/40 hover:text-red-500 transition-colors">
                               <Trash2 size={18} />
                             </button>
                           </div>
-                          <h3 className="font-bold text-lg mb-1">{playlist.name}</h3>
-                          <p className="text-sm text-gray-500">{playlist.notes.length} Notes Saved</p>
+                          <h3 className="font-bold text-lg mb-1 text-foreground">{playlist.name}</h3>
+                          <p className="text-sm text-muted-foreground font-medium">{playlist.notes.length} Notes Saved</p>
                         </div>
                       ))}
                     </div>
