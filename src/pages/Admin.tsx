@@ -163,11 +163,11 @@ const Admin = () => {
   const [isReplyOpen, setIsReplyOpen] = useState(false);
   const [replyText, setReplyText] = useState('');
   const [filterCourse, setFilterCourse] = useState<string>('all');
-  const [filterDomain, setFilterDomain] = useState<string>('all');
+  const [filterDomain] = useState<string>('all');
   const [userSearchQuery, setUserSearchQuery] = useState('');
   const [logSearchQuery, setLogSearchQuery] = useState('');
   const [logFilterType, setLogFilterType] = useState<string>('all');
-  const [logFilterDomain, setLogFilterDomain] = useState<string>('all');
+  const [logFilterDomain] = useState<string>('all');
 
   const activeUsers = useMemo(() =>
     registeredUsers.filter(u => u.interactionsCount > 10) // Mock logic: users with > 10 interactions are active

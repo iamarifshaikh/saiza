@@ -1,113 +1,116 @@
-import React, { useEffect, useState } from 'react';
-import { Shield, Lock, Cpu, Database } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { useState, useEffect } from "react";
+import { cn } from "@/lib/utils";
+import { useTheme } from "@/hooks/useTheme";
 
-interface AdminPreloaderProps {
-    onComplete?: () => void;
-}
-
-const AdminPreloader: React.FC<AdminPreloaderProps> = ({ onComplete }) => {
-    const [progress, setProgress] = useState(0);
-    const [status, setStatus] = useState("Initializing Secure Access");
-    const [isExiting, setIsExiting] = useState(false);
+const AdminPreloader = ({ onComplete }: { onComplete: () => void }) => {
+    const [loading, setLoading] = useState(true);
+    const [exitAnimation, setExitAnimation] = useState(false);
+    const { theme } = useTheme();
 
     useEffect(() => {
-        const statuses = [
-            "Initializing Secure Access",
-            "Authenticating Admin Credentials",
-            "Loading Encrypted Databases",
-            "Deciphering System Nodes",
-            "Synchronizing Global Assets",
-            "Access Granted"
-        ];
+        const timer = setTimeout(() => {
+            setExitAnimation(true);
+            setTimeout(() => {
+                setLoading(false);
+                onComplete();
+            }, 1000); // Cinematic exit duration
+        }, 2800);
 
-        const timer = setInterval(() => {
-            setProgress(prev => {
-                if (prev >= 100) {
-                    clearInterval(timer);
-                    setTimeout(() => {
-                        setIsExiting(true);
-                        setTimeout(() => onComplete?.(), 800);
-                    }, 500);
-                    return 100;
-                }
-
-                // Dynamic status updates
-                const statusIdx = Math.floor((prev / 100) * statuses.length);
-                if (statuses[statusIdx]) setStatus(statuses[statusIdx]);
-
-                return prev + (Math.random() * 15);
-            });
-        }, 400);
-
-        return () => clearInterval(timer);
+        return () => clearTimeout(timer);
     }, [onComplete]);
 
+    const isDark = theme === "dark";
+
     return (
-        <div className={cn(
-            "fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#020412] transition-all duration-1000 ease-in-out",
-            isExiting ? "opacity-0 scale-105 pointer-events-none" : "opacity-100 scale-100"
-        )}>
-            {/* Ruthless Background Ambience */}
-            <div className="absolute inset-0 overflow-hidden">
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/10 rounded-full blur-[150px] animate-pulse-glow" />
-                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.05] mix-blend-overlay" />
+        <div
+            className={cn(
+                "fixed inset-0 z-[99999] flex items-center justify-center transition-all duration-1000 ease-in-out overflow-hidden",
+                isDark ? "bg-[#010309]" : "bg-[#F8FAFC]",
+                exitAnimation ? "opacity-0 scale-110 blur-2xl pointer-events-none" : "opacity-100 scale-100"
+            )}
+        >
+            {/* Deep Atmospheric Layered Mesh - Admin Variation (Blue/Indigo Focus) */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <div className={cn(
+                    "absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full blur-[140px] animate-pulse-glow",
+                    isDark ? "bg-primary/25" : "bg-primary/15"
+                )} style={{ animationDuration: '4s' }} />
+                <div className={cn(
+                    "absolute bottom-[-15%] right-[-10%] w-[55%] h-[55%] rounded-full blur-[120px] animate-pulse-glow",
+                    isDark ? "bg-indigo-600/25" : "bg-indigo-600/15"
+                )} style={{ animationDuration: '5s', animationDelay: '1s' }} />
             </div>
 
-            {/* Main Container */}
-            <div className="relative z-10 flex flex-col items-center max-w-md w-full px-8">
-                {/* Core Icon Reveal */}
-                <div className="relative mb-12">
-                    <div className="w-24 h-24 rounded-3xl bg-slate-900 border border-white/10 flex items-center justify-center relative overflow-hidden group shadow-2xl shadow-primary/20">
-                        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent opacity-50" />
-                        <Shield size={40} className="text-primary animate-pulse relative z-10" />
+            {/* Center Stage Content */}
+            <div className="relative flex flex-col items-center z-10">
+                {/* Neon Logo Container */}
+                <div className="relative mb-12 group">
+                    <div className={cn(
+                        "absolute inset-[-10px] rounded-3xl blur-2xl animate-pulse",
+                        isDark ? "bg-primary/30" : "bg-primary/10"
+                    )} />
+                    <div className={cn(
+                        "absolute inset-[-4px] rounded-3xl blur-md",
+                        isDark ? "bg-white/10" : "bg-black/5"
+                    )} />
 
-                        {/* Spinning Radar Effect */}
-                        <div className="absolute inset-0 border-2 border-primary/20 border-t-primary rounded-full animate-spin [animation-duration:3s]" />
-                    </div>
-
-                    {/* Floating Data Icons */}
-                    <Lock size={16} className="absolute -top-4 -right-4 text-cyan-400/60 animate-bounce" style={{ animationDelay: '0.2s' }} />
-                    <Cpu size={16} className="absolute -bottom-2 -left-6 text-primary/60 animate-bounce" style={{ animationDelay: '0.5s' }} />
-                    <Database size={16} className="absolute bottom-10 -right-8 text-blue-500/60 animate-bounce" style={{ animationDelay: '0.8s' }} />
-                </div>
-
-                {/* Text Reveal */}
-                <div className="text-center mb-8">
-                    <h1 className="font-display text-4xl font-bold text-white tracking-widest mb-2 overflow-hidden">
-                        <span className="inline-block animate-fade-in-up">ADROITS</span>
-                    </h1>
-                    <p className="text-[10px] font-bold text-primary uppercase tracking-[0.5em] pl-2 animate-fade-in opacity-80">
-                        Command Center
-                    </p>
-                </div>
-
-                {/* Ruthless Loading Bar */}
-                <div className="w-full relative py-4">
-                    <div className="h-[2px] w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
-                        <div
-                            className="h-full bg-gradient-to-r from-cyan-500 via-primary to-blue-600 transition-all duration-300 ease-out shadow-[0_0_15px_rgba(12,165,233,0.5)]"
-                            style={{ width: `${progress}%` }}
+                    <div className={cn(
+                        "relative w-32 h-32 flex items-center justify-center backdrop-blur-2xl border rounded-[2.5rem] animate-scale-up-down transition-all duration-700",
+                        isDark
+                            ? "bg-white/5 border-white/20 shadow-[0_0_50px_rgba(var(--primary),0.3)]"
+                            : "bg-black/5 border-black/5 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.05)]"
+                    )}>
+                        <img
+                            src="/adroits-logo.png"
+                            alt="Logo"
+                            className={cn(
+                                "w-20 h-20 object-contain transition-all duration-700",
+                                isDark ? "drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]" : "drop-shadow-[0_4px_10px_rgba(0,0,0,0.1)]"
+                            )}
                         />
                     </div>
+                </div>
 
-                    {/* Progress Percent */}
-                    <div className="absolute right-0 top-6 font-mono text-[10px] text-primary/60 font-bold">
-                        {Math.floor(progress)}%
+                {/* Typography & Tech Loading Bar */}
+                <div className="flex flex-col items-center gap-6">
+                    <div className="flex flex-col items-center gap-1">
+                        <h1 className={cn(
+                            "text-4xl font-black tracking-[0.4em] uppercase ml-[0.4em] animate-fade-in-up transition-colors duration-700",
+                            isDark ? "text-white" : "text-slate-900"
+                        )}>
+                            ADROITS
+                        </h1>
+                        <p className={cn(
+                            "text-xs font-bold tracking-[0.4em] uppercase ml-[0.4em] animate-pulse transition-colors duration-700",
+                            isDark ? "text-primary/80" : "text-primary"
+                        )}>
+                            Secure Administrative Access
+                        </p>
                     </div>
 
-                    {/* Status Text */}
-                    <div className="absolute left-0 top-6 font-mono text-[10px] text-white/40 font-medium uppercase tracking-widest animate-pulse">
-                        &gt; {status}
+                    <div className={cn(
+                        "relative w-48 h-[2px] rounded-full overflow-hidden transition-colors duration-700",
+                        isDark ? "bg-white/5" : "bg-black/5"
+                    )}>
+                        <div className={cn(
+                            "absolute inset-0",
+                            isDark ? "bg-primary/20" : "bg-primary/10"
+                        )} />
+                        {/* Admin specific loader gradient */}
+                        <div className="h-full bg-gradient-to-r from-transparent via-primary to-transparent w-full animate-loading-bar" />
                     </div>
                 </div>
             </div>
 
-            {/* Decorative Corner Borders */}
-            <div className="absolute top-10 left-10 w-20 h-20 border-t-2 border-l-2 border-white/5" />
-            <div className="absolute top-10 right-10 w-20 h-20 border-t-2 border-r-2 border-white/5" />
-            <div className="absolute bottom-10 left-10 w-20 h-20 border-b-2 border-l-2 border-white/5" />
-            <div className="absolute bottom-10 right-10 w-20 h-20 border-b-2 border-r-2 border-white/5" />
+            {/* Shutter Reveal Transition Effect */}
+            {exitAnimation && (
+                <div className="absolute inset-0 z-20 pointer-events-none">
+                    <div className={cn(
+                        "absolute inset-0 backdrop-blur-3xl animate-fade-out",
+                        isDark ? "bg-black/40" : "bg-white/40"
+                    )} />
+                </div>
+            )}
         </div>
     );
 };
