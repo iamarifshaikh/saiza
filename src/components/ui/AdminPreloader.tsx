@@ -3,7 +3,6 @@ import { cn } from "@/lib/utils";
 import { useTheme } from "@/hooks/useTheme";
 
 const AdminPreloader = ({ onComplete }: { onComplete: () => void }) => {
-    const [loading, setLoading] = useState(true);
     const [exitAnimation, setExitAnimation] = useState(false);
     const { theme } = useTheme();
 
@@ -11,7 +10,6 @@ const AdminPreloader = ({ onComplete }: { onComplete: () => void }) => {
         const timer = setTimeout(() => {
             setExitAnimation(true);
             setTimeout(() => {
-                setLoading(false);
                 onComplete();
             }, 1000); // Cinematic exit duration
         }, 2800);
