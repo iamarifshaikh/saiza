@@ -20,6 +20,7 @@ import CustomCursor from "@/components/ui/CustomCursor";
 import Preloader from "@/components/ui/Preloader";
 import ProfileCompletionHandler from "@/components/auth/ProfileCompletionHandler";
 import { AuthProvider } from "@/hooks/useAuth";
+import LaunchCountdown from "@/components/ui/LaunchCountdown";
 
 import { ThemeProvider } from "@/hooks/useTheme";
 
@@ -27,7 +28,25 @@ const queryClient = new QueryClient();
 
 const App = () => {
   // For admin route, we skip the global loading state immediately
-  const [isLoading, setIsLoading] = useState(!window.location.pathname.startsWith('/admin'));
+  const isAdminRoute = window.location.pathname.startsWith('/admin');
+  const [isLoading, setIsLoading] = useState(!isAdminRoute);
+
+  // LAUNCH TIMER CONFIGURATION
+  // TARGET: January 1st, 2026, 00:00:00
+  const [launchTime] = useState(() => {
+    const t = new Date('2026-01-01T00:00:00');
+    return t;
+  });
+
+  // Launch state - if it's admin OR stored in localStorage, we assume "launched"
+  const [isLaunched, setIsLaunched] = useState(() => {
+    return isAdminRoute || localStorage.getItem('launch_completed') === 'true';
+  });
+
+  const handleLaunchComplete = () => {
+    setIsLaunched(true);
+    setIsLoading(true); // Reset loading to show the main preloader for the 'big bang' feel
+  };
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -38,15 +57,21 @@ const App = () => {
             <Sonner />
 
             <BrowserRouter>
-              {/* Preloader overlay - skip for admin as it has specialized preloaders */}
-              {!window.location.pathname.startsWith('/admin') && (
+              {/* Preloader overlay - only show if launched AND not admin (admin has own loaders) */}
+              {isLaunched && !isAdminRoute && (
                 <Preloader onComplete={() => setIsLoading(false)} />
               )}
 
               {/* Custom Cursor needs to be inside AuthProvider */}
               <CustomCursor />
 
-              {!isLoading && (
+              {/* Launch Timer Overlay - Only for non-admin routes */}
+              {!isLaunched && !isAdminRoute && (
+                <LaunchCountdown targetDate={launchTime} onLaunch={handleLaunchComplete} />
+              )}
+
+              {/* Main Content Render Logic */}
+              {(isLaunched && !isLoading) || isAdminRoute ? (
                 <>
                   <ProfileCompletionHandler />
                   <Routes>
@@ -65,7 +90,7 @@ const App = () => {
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </>
-              )}
+              ) : null}
             </BrowserRouter>
           </AuthProvider>
         </TooltipProvider>
