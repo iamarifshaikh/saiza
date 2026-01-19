@@ -25,8 +25,8 @@ const ProfileCompletionHandler = () => {
         }
     }, [isSignedUp, hasCompletedInfo, user, location.pathname]);
 
-    const handleComplete = (college: string, semester: string, fullName?: string) => {
-        completeUserInfo(college, semester, fullName);
+    const handleComplete = (college: string, semester: string, courseType: string, fullName?: string) => {
+        completeUserInfo(college, semester, courseType, fullName);
         setShowPopup(false);
     };
 

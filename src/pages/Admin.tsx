@@ -132,7 +132,7 @@ const Admin = () => {
     if (isAuthenticated) {
       const fetchData = async () => {
         try {
-          const [domainsRes, subjectsRes, notesRes, logsRes, healthRes] = await Promise.all([
+          const [domainsRes, , , logsRes, healthRes] = await Promise.all([
             api.get('/domains').catch(err => {
               console.error("Domains Fetch Failed:", err);
               return { data: [] };

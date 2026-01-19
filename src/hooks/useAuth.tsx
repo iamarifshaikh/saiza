@@ -167,7 +167,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const completeUserInfo = useCallback(async (college: string, semester: string, courseType: string, name?: string) => {
         try {
-            const res = await api.post('/user/complete-profile', { college, semester, courseType });
+            const res = await api.post('/user/complete-profile', { college, semester, courseType, name });
             const updatedUser = res.data;
 
             setAuthState(prev => ({
