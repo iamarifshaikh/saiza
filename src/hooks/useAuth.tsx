@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback, createContext, useContext, useMemo } from 'react';
+import api from '@/lib/api';
+import { toast } from 'sonner';
 
 interface User {
     id: string;
@@ -6,7 +8,9 @@ interface User {
     email: string;
     college: string;
     semester: string;
+    courseType?: 'ENGINEERING' | 'DIPLOMA';
     isPremium: boolean;
+    role: string;
 }
 
 interface RecentNote {
@@ -44,10 +48,11 @@ interface AuthState {
 }
 
 interface AuthContextType extends AuthState {
-    signUp: (email: string, password: string, name: string) => boolean;
-    completeUserInfo: (college: string, semester: string, name?: string) => void;
+    signUp: (email: string, password: string, name: string) => Promise<boolean>;
+    signIn: (email: string, password: string) => Promise<boolean>;
+    completeUserInfo: (college: string, semester: string, courseType: string, name?: string) => Promise<void>;
     updateUser: (updates: Partial<User>) => void;
-    upgradeToPremium: () => void;
+    upgradeToPremium: () => Promise<void>;
     logout: () => void;
     startReading: () => void;
     getReadingDuration: () => number;
@@ -96,53 +101,113 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [authState, setAuthState] = useState<AuthState>(getInitialState);
 
+    // Sync to local storage
     useEffect(() => {
         localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authState));
     }, [authState]);
 
-    const signUp = useCallback((email: string, _password: string, name: string) => {
-        const user: User = {
-            id: Math.random().toString(36).substring(7),
-            name,
-            email,
-            college: '',
-            semester: '',
-            isPremium: false,
+    // Check token validity on mount
+    useEffect(() => {
+        const checkAuth = async () => {
+            const token = localStorage.getItem('token');
+            if (token && !authState.user) {
+                try {
+                    const res = await api.get('/user/profile');
+                    setAuthState(prev => ({
+                        ...prev,
+                        isSignedUp: true,
+                        hasCompletedInfo: !!(res.data.college && res.data.semester),
+                        user: res.data
+                    }));
+                } catch (e) {
+                    console.error("Token invalid", e);
+                    logout();
+                }
+            }
         };
-
-        setAuthState(prev => ({
-            ...prev,
-            isSignedUp: true,
-            user,
-            hasShownInitialPopup: true,
-        }));
-
-        return true;
+        checkAuth();
     }, []);
 
-    const completeUserInfo = useCallback((college: string, semester: string, name?: string) => {
-        setAuthState(prev => ({
-            ...prev,
-            hasCompletedInfo: true,
-            user: prev.user ? { ...prev.user, college, semester, name: name || prev.user.name } : null,
-        }));
+    const signUp = useCallback(async (email: string, password: string, name: string) => {
+        try {
+            await api.post('/auth/signup', { email, password, name });
+            // Auto login after signup? Or require signin? 
+            // The backend returns "User registered successfully!" string, not token.
+            // So we return true and let UI redirect to Sign In.
+            return true;
+        } catch (error: any) {
+            console.error(error);
+            toast.error(error.response?.data || "Signup failed");
+            return false;
+        }
+    }, []);
+
+    const signIn = useCallback(async (email: string, password: string) => {
+        try {
+            const res = await api.post('/auth/signin', { email, password });
+            const { token, user } = res.data;
+
+            localStorage.setItem('token', token);
+
+            setAuthState(prev => ({
+                ...prev,
+                isSignedUp: true,
+                user,
+                hasCompletedInfo: !!(user.college && user.semester),
+                hasShownInitialPopup: true, // Assuming login means they've seen intro
+            }));
+
+            return true;
+        } catch (error: any) {
+            console.error(error);
+            toast.error(error.response?.data?.message || "Login failed");
+            return false;
+        }
+    }, []);
+
+    const completeUserInfo = useCallback(async (college: string, semester: string, courseType: string, name?: string) => {
+        try {
+            const res = await api.post('/user/complete-profile', { college, semester, courseType });
+            const updatedUser = res.data;
+
+            setAuthState(prev => ({
+                ...prev,
+                hasCompletedInfo: true,
+                user: updatedUser,
+            }));
+            toast.success("Profile Updated!");
+        } catch (error: any) {
+            toast.error(error.response?.data || "Failed to update profile");
+        }
     }, []);
 
     const updateUser = useCallback((updates: Partial<User>) => {
+        // Optimistic update, ignoring backend for now as requested? 
+        // Or should we implement UPDATE USER API?
+        // User requested profile completion API, but not generic update yet.
+        // We'll keep local state update for now or implement if needed.
         setAuthState(prev => ({
             ...prev,
             user: prev.user ? { ...prev.user, ...updates } : null,
         }));
     }, []);
 
-    const upgradeToPremium = useCallback(() => {
-        setAuthState(prev => ({
-            ...prev,
-            user: prev.user ? { ...prev.user, isPremium: true } : null,
-        }));
+    const upgradeToPremium = useCallback(async () => {
+        try {
+            await api.put('/user/premium');
+            setAuthState(prev => ({
+                ...prev,
+                user: prev.user ? { ...prev.user, isPremium: true } : null,
+            }));
+            toast.success("Welcome to Premium!");
+        } catch (error) {
+            toast.error("Failed to upgrade");
+        }
     }, []);
 
     const logout = useCallback(() => {
+        localStorage.removeItem('token');
+        localStorage.removeItem(AUTH_STORAGE_KEY); // Clear persisted state
         setAuthState({
             isSignedUp: false,
             hasCompletedInfo: false,
@@ -152,6 +217,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             recentNotes: [],
             myWordsPlaylists: [],
         });
+        window.location.reload(); // Force clear
     }, []);
 
     const startReading = useCallback(() => {
@@ -176,6 +242,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, [authState.readingStartTime]);
 
     const addRecentNote = useCallback((note: Omit<RecentNote, 'visitedAt'>) => {
+        // Analytics Track
+        try {
+            api.post('/analytics/track', {
+                action: 'VIEW_PDF',
+                noteId: note.noteId,
+                details: note.title
+            });
+        } catch (e) { /* ignore silent fail */ }
+
         setAuthState(prev => {
             const filtered = prev.recentNotes.filter(n => n.noteId !== note.noteId);
             const newNote: RecentNote = { ...note, visitedAt: Date.now() };
@@ -259,6 +334,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const value = useMemo(() => ({
         ...authState,
         signUp,
+        signIn,
         completeUserInfo,
         updateUser,
         upgradeToPremium,
@@ -273,7 +349,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         addNoteToPlaylist,
         removeNoteFromPlaylist,
         renamePlaylist,
-    }), [authState, signUp, completeUserInfo, updateUser, upgradeToPremium, logout, startReading, getReadingDuration, markInitialPopupShown, addRecentNote, updateRecentNoteProgress, createPlaylist, deletePlaylist, addNoteToPlaylist, removeNoteFromPlaylist, renamePlaylist]);
+    }), [authState, signUp, signIn, completeUserInfo, updateUser, upgradeToPremium, logout, startReading, getReadingDuration, markInitialPopupShown, addRecentNote, updateRecentNoteProgress, createPlaylist, deletePlaylist, addNoteToPlaylist, removeNoteFromPlaylist, renamePlaylist]);
 
     return (
         <AuthContext.Provider value={value}>

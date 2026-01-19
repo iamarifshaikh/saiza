@@ -60,17 +60,19 @@ const NotesViewer = () => {
   // Get note details from navigation state or fallback
   const passedNote = location.state?.note;
   const noteDetails = {
-    title: passedNote?.title || "Complete DSA Roadmap & Notes",
-    author: "Prof. R.K. Sharma",
-    pages: passedNote?.pages || 45,
+    title: passedNote?.title || "Note Viewer",
+    author: "Saiza Platform",
+    pages: passedNote?.pages || 1,
     isPremium: passedNote?.isPremium || false,
+    pdfUrl: passedNote?.pdfUrl || "",
   };
 
-  // Determine access rights
+  // Determine access rights (For debugging: allow all for now, or respect logic)
   const isLoggedIn = auth.isSignedUp;
   const isPremiumUser = isLoggedIn && auth.user?.isPremium;
-  const isPreviewPage = currentPage <= 4;
-  const hasAccess = isLoggedIn || isPreviewPage;
+  // const isPreviewPage = currentPage <= 4;
+  // const hasAccess = isLoggedIn || isPreviewPage;
+  const hasAccess = true; // Temporary debug override to always show content
   const showPremiumBlock = !hasAccess;
 
   // Simulate loading
@@ -251,43 +253,30 @@ const NotesViewer = () => {
                       </button>
                     </div>
 
-                    {/* Page Display with simulated flip animation */}
+                    {/* PDF Display */}
                     <div
                       key={currentPage}
                       className={cn(
-                        "bg-white shadow-2xl w-full max-w-4xl h-full rounded-[1rem] p-4 lg:p-12 flex flex-col relative overflow-hidden transition-all",
+                        "bg-white shadow-2xl w-full max-w-4xl h-full rounded-[1rem] p-1 flex flex-col relative overflow-hidden transition-all",
                         direction === 'next' ? "animate-in slide-in-from-right-8 fade-in duration-500 ease-out" : "animate-in slide-in-from-left-8 fade-in duration-500 ease-out"
                       )}
                     >
-                      {/* Mock Page Content */}
-                      <div className="w-full h-full border border-gray-100 p-4 lg:p-8 flex flex-col">
-                        <div className="w-full border-b border-gray-100 pb-2 lg:pb-4 mb-4 lg:mb-8 flex justify-between items-center text-gray-300 text-[8px] lg:text-xs font-mono uppercase select-none">
-                          <span>Chapter 1</span>
-                          <span className="truncate ml-4">{noteDetails.title}</span>
+                      {noteDetails.pdfUrl ? (
+                        (() => {
+                          console.log("DEBUG: Rendering PDF URL:", noteDetails.pdfUrl);
+                          return (
+                            <iframe
+                              src={noteDetails.pdfUrl.startsWith('http') ? noteDetails.pdfUrl : `http://localhost:8080${noteDetails.pdfUrl}#page=${currentPage}`}
+                              className="w-full h-full border-0 rounded-lg bg-gray-100"
+                              title="PDF Viewer"
+                            />
+                          );
+                        })()
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-red-500 font-bold">
+                          PDF URL not found
                         </div>
-
-                        <div className="space-y-4 lg:space-y-6">
-                          <div className="w-3/4 h-6 lg:h-8 bg-gray-900 rounded mb-4 lg:mb-8" />
-                          <div className="w-full h-1.5 lg:h-3 bg-gray-200 rounded" />
-                          <div className="w-full h-1.5 lg:h-3 bg-gray-200 rounded" />
-                          <div className="w-5/6 h-1.5 lg:h-3 bg-gray-200 rounded" />
-                          <div className="w-full h-1.5 lg:h-3 bg-gray-200 rounded" />
-                          <div className="hidden lg:block w-4/5 h-3 bg-gray-200 rounded" />
-
-                          <div className="py-4 lg:py-8">
-                            <div className="w-full aspect-video bg-gray-50 rounded-lg lg:rounded-xl border border-dashed border-gray-200 flex items-center justify-center text-gray-400 text-[10px] lg:text-sm">
-                              Figure {currentPage}: Model Visualization
-                            </div>
-                          </div>
-
-                          <div className="w-full h-1.5 lg:h-3 bg-gray-200 rounded" />
-                          <div className="w-11/12 h-1.5 lg:h-3 bg-gray-200 rounded" />
-                        </div>
-
-                        <div className="mt-auto pt-4 lg:pt-8 border-t border-gray-100 flex justify-center text-gray-400 text-[10px] lg:text-sm font-medium select-none">
-                          Page {currentPage}
-                        </div>
-                      </div>
+                      )}
                     </div>
 
                     {/* Page Shadow Pile Effect - Reduced for mobile */}

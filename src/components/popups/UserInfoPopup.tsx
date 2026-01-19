@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Sparkles, GraduationCap, BookOpen, User as UserIcon } from 'lucide-react';
+import { Sparkles, GraduationCap, BookOpen, User as UserIcon, ScrollText } from 'lucide-react';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import {
@@ -14,7 +14,7 @@ import { useAuth } from '@/hooks/useAuth';
 
 interface UserInfoPopupProps {
   isOpen: boolean;
-  onComplete: (college: string, semester: string, fullName?: string) => void;
+  onComplete: (college: string, semester: string, courseType: string, fullName?: string) => void;
 }
 
 const colleges = [
@@ -42,12 +42,14 @@ const UserInfoPopup = ({ isOpen, onComplete }: UserInfoPopupProps) => {
   const [fullName, setFullName] = useState('');
   const [college, setCollege] = useState('');
   const [semester, setSemester] = useState('');
+  const [courseType, setCourseType] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (user?.name) setFullName(user.name);
     if (user?.college) setCollege(user.college);
     if (user?.semester) setSemester(user.semester);
+    if (user?.courseType) setCourseType(user.courseType);
   }, [user]);
 
   if (!isOpen) return null;
@@ -55,7 +57,7 @@ const UserInfoPopup = ({ isOpen, onComplete }: UserInfoPopupProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!fullName || !college || !semester) {
+    if (!fullName || !college || !semester || !courseType) {
       toast.error('Please fill in all essential fields');
       return;
     }
@@ -63,7 +65,7 @@ const UserInfoPopup = ({ isOpen, onComplete }: UserInfoPopupProps) => {
     setIsLoading(true);
     await new Promise(resolve => setTimeout(resolve, 800));
 
-    onComplete(college, semester, fullName);
+    onComplete(college, semester, courseType, fullName);
     setIsLoading(false);
   };
 
@@ -113,6 +115,26 @@ const UserInfoPopup = ({ isOpen, onComplete }: UserInfoPopupProps) => {
                 />
               </div>
 
+              {/* Course Type Field */}
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-1">
+                  <ScrollText size={12} className="text-primary" /> Course Type
+                </label>
+                <Select value={courseType} onValueChange={setCourseType}>
+                  <SelectTrigger className="h-14 rounded-2xl bg-white/5 border-white/10 text-white focus:bg-white/10 focus:border-primary/50 transition-all font-bold px-6">
+                    <SelectValue placeholder="Diploma or Engineering?" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-2xl bg-[#0f172a] border-white/10 text-white z-[150] backdrop-blur-3xl p-2">
+                    <SelectItem value="DIPLOMA" className="rounded-xl focus:bg-primary focus:text-white transition-colors py-3 px-4 font-bold">
+                      Diploma
+                    </SelectItem>
+                    <SelectItem value="ENGINEERING" className="rounded-xl focus:bg-primary focus:text-white transition-colors py-3 px-4 font-bold">
+                      Engineering
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               {/* College Field */}
               <div className="space-y-2">
                 <label className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-1">
@@ -122,7 +144,7 @@ const UserInfoPopup = ({ isOpen, onComplete }: UserInfoPopupProps) => {
                   <SelectTrigger className="h-14 rounded-2xl bg-white/5 border-white/10 text-white focus:bg-white/10 focus:border-primary/50 transition-all font-bold px-6">
                     <SelectValue placeholder="Select College" />
                   </SelectTrigger>
-                  <SelectContent className="rounded-2xl bg-[#0f172a] border-white/10 text-white z-[150] backdrop-blur-3xl p-2">
+                  <SelectContent className="rounded-2xl bg-[#0f172a] border-white/10 text-white z-[150] backdrop-blur-3xl p-2 max-h-[200px] overflow-y-auto">
                     {colleges.map((c) => (
                       <SelectItem key={c} value={c} className="rounded-xl focus:bg-primary focus:text-white transition-colors py-3 px-4 font-bold">
                         {c}
@@ -141,7 +163,7 @@ const UserInfoPopup = ({ isOpen, onComplete }: UserInfoPopupProps) => {
                   <SelectTrigger className="h-14 rounded-2xl bg-white/5 border-white/10 text-white focus:bg-white/10 focus:border-primary/50 transition-all font-bold px-6">
                     <SelectValue placeholder="Current Semester" />
                   </SelectTrigger>
-                  <SelectContent className="rounded-2xl bg-[#0f172a] border-white/10 text-white z-[150] backdrop-blur-3xl p-2">
+                  <SelectContent className="rounded-2xl bg-[#0f172a] border-white/10 text-white z-[150] backdrop-blur-3xl p-2 max-h-[200px] overflow-y-auto">
                     {semesters.map((s) => (
                       <SelectItem key={s} value={s} className="rounded-xl focus:bg-primary focus:text-white transition-colors py-3 px-4 font-bold">
                         {s}

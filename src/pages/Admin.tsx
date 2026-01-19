@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -34,8 +34,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import Reveal from '@/components/animations/Reveal';
+import api from "@/lib/api";
 
-// Admin credentials
+// Admin credentials (TODO: Move to backend auth ideally, but keeping as is for client-side gate)
 const ADMIN_PASSWORD = 'adroits2024admin';
 
 interface Domain {
@@ -65,7 +66,8 @@ interface Interaction {
   type: 'view' | 'download';
   contentId: string;
   timestamp: string;
-  path?: string; // e.g. "Diploma > Computer > DSA"
+  path?: string;
+  details?: string;
 }
 
 interface RegisteredUser {
@@ -109,40 +111,134 @@ const Admin = () => {
   });
   const [activeTab, setActiveTab] = useState<'overview' | 'content' | 'users' | 'analytics' | 'messages'>('overview');
 
-  // Data state
-  const [domains, setDomains] = useState<Domain[]>([
-    { id: 'computer', name: 'Computer Engineering', courseType: 'engineering' },
-    { id: 'it', name: 'Information Technology', courseType: 'engineering' },
-    { id: 'mechanical', name: 'Mechanical Engineering', courseType: 'engineering' },
-  ]);
+  // Dynamic Data State
+  const [domains, setDomains] = useState<Domain[]>([]);
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [logs, setLogs] = useState<Interaction[]>([]);
 
-  const [subjects, setSubjects] = useState<Subject[]>([
-    { id: 'dsa', name: 'Data Structures & Algorithms', domainId: 'computer', isPremium: false },
-    { id: 'os', name: 'Operating Systems', domainId: 'computer', isPremium: false },
-    { id: 'dbms', name: 'Database Management Systems', domainId: 'computer', isPremium: true },
-  ]);
+  // Use backend names for domain mapping if needed, but for now we'll rely on the API data
 
-  const [notes, setNotes] = useState<Note[]>([
-    { id: 'arrays-basics', title: 'Arrays - Basics & Operations', subjectId: 'dsa', isPremium: false, pdfUrl: '/demo-free.pdf' },
-    { id: 'linked-lists', title: 'Linked Lists Complete Guide', subjectId: 'dsa', isPremium: true, pdfUrl: '/demo-premium.pdf' },
-  ]);
-
+  // Hardcoded for now (or TODO: Fetch users/messages from backend)
   const [registeredUsers] = useState<RegisteredUser[]>([
     { id: 'u1', name: 'Arif Shaikh', email: 'arif@example.com', phone: '+91 9876543210', joinedAt: '2025-12-15', interactionsCount: 12, lastActive: '2025-12-29 14:30' },
-    { id: 'u2', name: 'John Doe', email: 'john@example.com', phone: '+91 9123456789', joinedAt: '2025-12-20', interactionsCount: 5, lastActive: '2025-12-28 10:15' },
-    { id: 'u3', name: 'Sara Smith', email: 'sara@example.com', phone: '+91 8888888888', joinedAt: '2025-12-25', interactionsCount: 20, lastActive: '2025-12-29 18:00' },
   ]);
 
-  const [interactions] = useState<Interaction[]>([
-    { id: 'i1', userId: 'u1', type: 'download', contentId: 'arrays-basics', timestamp: '2025-12-29 12:00', path: 'Engineering > Computer > DSA' },
-    { id: 'i2', userId: 'u3', type: 'view', contentId: 'linked-lists', timestamp: '2025-12-29 17:45', path: 'Engineering > IT > DSA' },
-    { id: 'i3', userId: 'u1', type: 'view', contentId: 'dbms', timestamp: '2025-12-29 14:00', path: 'Diploma > IT > DBMS' },
-  ]);
+  // Hardcoded for now
+  const [messages, setMessages] = useState<Message[]>([]);
 
-  const [messages, setMessages] = useState<Message[]>([
-    { id: 'm1', name: 'Rahul Kumar', email: 'rahul@example.com', phone: '+91 7777777777', subject: 'Query about Premium', message: 'I want to know the pricing for the premium engineering subjects.', createdAt: '2025-12-28', isRead: false },
-    { id: 'm2', name: 'Priya Verma', email: 'priya@example.com', phone: '+91 6666666666', subject: 'Missing Subject', message: 'Can you please add Cyber Security notes for IT?', createdAt: '2025-12-29', isRead: true },
-  ]);
+  // Fetch Data on Authenticated Mount
+  useEffect(() => {
+    if (isAuthenticated) {
+      const fetchData = async () => {
+        try {
+          const [domainsRes, subjectsRes, notesRes, logsRes, healthRes] = await Promise.all([
+            api.get('/domains').catch(err => {
+              console.error("Domains Fetch Failed:", err);
+              return { data: [] };
+            }),
+            // We need to fetch ALL subjects. The current API is /subjects/domain/:id. 
+            // We might need to iterate domains or adds an endpoint /subjects/all. 
+            // For now, let's fetch domains first, then fetch subjects for each.
+            // ACTUALLY: Let's assume we have a way, or just fetch sequentially for now.
+            Promise.resolve({ data: [] }), // Placeholder 
+            Promise.resolve({ data: [] }), // Placeholder
+            api.get('/admin/logs').catch(err => {
+              console.error("Logs Fetch Failed:", err);
+              return { data: [] };
+            }),
+            api.get('/health').catch((err) => {
+              console.error("Health Check Failed:", err);
+              return { data: { server: 'down', database: 'disconnected', error: err.message } };
+            })
+          ]);
+
+          // Map backend 'title' to 'name' for frontend compatibility
+          const mappedDomains = domainsRes.data.map((d: any) => ({
+            ...d,
+            name: d.title || d.name,
+            courseType: d.courseType || 'engineering' // Fallback for old data
+          }));
+          setDomains(mappedDomains);
+
+          setLogs(logsRes.data);
+          setHealthStatus(healthRes.data);
+          console.log("Health Check Response:", healthRes.data);
+          console.log("Mapped Domains:", mappedDomains);
+
+          // Cascading fetch for subjects (since we don't have get-all-subjects endpoint yet publicly maybe?)
+          // Wait, the user wants dynamic.
+          // Let's rely on fetching subjects when domains change or just iterate.
+        } catch (e) {
+          console.error("Failed to load admin data", e);
+          toast.error("Failed to load dashboard data");
+        }
+      };
+
+      // Initial fetch of domains and logs
+      fetchData();
+    }
+  }, [isAuthenticated]);
+
+  // Fetch all subjects and notes when domains are loaded
+  useEffect(() => {
+    const fetchContent = async () => {
+      if (domains.length === 0) return;
+
+      try {
+        // Fetch subjects for all domains
+        const allSubjects: Subject[] = [];
+        for (const d of domains) {
+          try {
+            const res = await api.get(`/subjects/domain/${d.id}`);
+            // Map backend response to interface if needed
+            // user code uses 'name' backend uses 'title'. Let's map it.
+            const mapped = res.data.map((s: any) => ({
+              id: s.id,
+              name: s.title,
+              domainId: d.id, // backend might not return domainId in list
+              isPremium: s.isPremium
+            }));
+            allSubjects.push(...mapped);
+          } catch (err) { }
+        }
+        setSubjects(allSubjects);
+      } catch (e) { console.error(e) }
+    };
+    fetchContent();
+  }, [domains]);
+
+  // Fetch notes when subjects are loaded
+  useEffect(() => {
+    const fetchNotes = async () => {
+      if (subjects.length === 0) return;
+      try {
+        const allNotes: Note[] = [];
+        for (const s of subjects) {
+          try {
+            const res = await api.get(`/notes/subject/${s.id}`);
+            // Map backend 'Note' to frontend 'Note'
+            // Backend: id, title, description, isPremium, pdfUrl...
+            const mapped = res.data.map((n: any) => ({
+              id: n.id,
+              title: n.title,
+              subjectId: s.id,
+              isPremium: n.isPremium,
+              pdfUrl: n.pdfUrl || ''
+            }));
+            allNotes.push(...mapped);
+          } catch (err) { }
+        }
+        setNotes(allNotes);
+      } catch (e) { console.error(e) }
+    };
+    fetchNotes();
+  }, [subjects]);
+
+  const interactions = logs; // Alias for compatibility
+
+  // Messages state is declared above.
+  // const [messages, setMessages] = ... (removed duplicate)
 
   const [trafficLogs] = useState<TrafficLog[]>([
     { date: '2025-12-23', visitors: 120, domain: 'Computer Engineering' },
@@ -155,6 +251,10 @@ const Admin = () => {
   ]);
 
   // Form states update
+  const [subjectCreationStream, setSubjectCreationStream] = useState<'engineering' | 'diploma'>('engineering');
+  const [noteCreationStream, setNoteCreationStream] = useState<'engineering' | 'diploma'>('engineering');
+  const [noteCreationDomainId, setNoteCreationDomainId] = useState<string>('');
+
   const [newDomain, setNewDomain] = useState<{ name: string; courseType: 'diploma' | 'engineering' }>({ name: '', courseType: 'engineering' });
   const [newSubject, setNewSubject] = useState({ name: '', domainId: '', isPremium: false });
   const [newNote, setNewNote] = useState({ title: '', subjectId: '', isPremium: false, pdfUrl: '' });
@@ -168,6 +268,8 @@ const Admin = () => {
   const [logSearchQuery, setLogSearchQuery] = useState('');
   const [logFilterType, setLogFilterType] = useState<string>('all');
   const [logFilterDomain] = useState<string>('all');
+
+  const [healthStatus, setHealthStatus] = useState<{ server: string, database: string, error?: string } | null>(null);
 
   const activeUsers = useMemo(() =>
     registeredUsers.filter(u => u.interactionsCount > 10) // Mock logic: users with > 10 interactions are active
@@ -197,48 +299,166 @@ const Admin = () => {
     toast.success('Logged out');
   };
 
-  const handleAddDomain = () => {
+  const handleAddDomain = async () => {
     if (newDomain.name) {
-      const id = newDomain.name.toLowerCase().replace(/\s+/g, '-');
-      setDomains([...domains, { ...newDomain, id }]);
-      setNewDomain({ name: '', courseType: 'engineering' });
-      toast.success('Domain added successfully');
+      try {
+        // Standardize Slug Generation to match DataSeeder/Subjects.tsx
+        const inputName = newDomain.name.toLowerCase();
+        let coreSlug = inputName.replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+        if (inputName.includes('chem')) coreSlug = 'chemical';
+        else if (inputName.includes('civil')) coreSlug = 'civil';
+        else if (inputName.includes('mechan')) coreSlug = 'mechanical';
+        else if (inputName.includes('electrical')) coreSlug = 'electrical';
+        else if (inputName.includes('electronic') || inputName.includes('tele') || inputName.includes('extc')) coreSlug = 'electronics';
+        else if (inputName.includes('computer') || inputName.includes('cse')) coreSlug = 'computer';
+        else if (inputName.includes('information') || inputName === 'it') coreSlug = 'information-technology';
+
+        const payload = {
+          id: (newDomain.courseType === 'diploma' ? 'dip-' : 'eng-') + coreSlug,
+          title: newDomain.name,
+          courseType: newDomain.courseType,
+          description: "No description" // Mock default
+        };
+        // Backend expects 'title' but frontend internal uses 'name'. 
+        // Backend Domain: id, title, description, courseType, subjects
+        // We need to match backend expectation.
+        await api.post('/admin/domains', payload);
+
+        setDomains([...domains, { ...newDomain, id: payload.id }]);
+        setNewDomain({ name: '', courseType: 'engineering' });
+        toast.success('Domain added successfully');
+      } catch (e: any) {
+        toast.error(e.response?.data?.message || "Failed to add domain");
+      }
     }
   };
 
-  const handleAddSubject = () => {
+  const handleAddSubject = async () => {
     if (newSubject.name && newSubject.domainId) {
-      const id = newSubject.name.toLowerCase().replace(/\s+/g, '-');
-      setSubjects([...subjects, { ...newSubject, id }]);
-      setNewSubject({ name: '', domainId: '', isPremium: false });
-      toast.success('Subject added successfully');
+      try {
+        const payload = {
+          title: newSubject.name,
+          code: "SUB" + Math.floor(Math.random() * 1000), // Mock code
+          domainId: newSubject.domainId,
+          isPremium: newSubject.isPremium
+        };
+        console.log("DEBUG: Sending Subject Payload:", payload);
+        const res = await api.post('/admin/subjects', payload);
+
+        // Append locally using real ID from backend
+        // Note: Backend returns 'title', we map to 'name'
+        const savedSubject = res.data;
+        const realId = savedSubject.id;
+
+        setSubjects(prev => [...prev, {
+          id: realId,
+          name: savedSubject.title || newSubject.name,
+          domainId: newSubject.domainId,
+          isPremium: newSubject.isPremium
+        }]);
+
+        setNewSubject({ name: '', domainId: '', isPremium: false });
+        // Trigger a refresh of subjects completely to be safe
+        // For now, simpler to just append.
+        toast.success('Subject added successfully');
+      } catch (e: any) {
+        console.error("Add Subject Error:", e);
+        const errorMsg = e.response?.data?.message || e.message || "Unknown error";
+        toast.error(`Failed to add subject: ${errorMsg}`);
+      }
     }
   };
 
-  const handleAddNote = () => {
-    if (newNote.title && newNote.subjectId) {
-      const id = newNote.title.toLowerCase().replace(/\s+/g, '-');
-      setNotes([...notes, { ...newNote, id }]);
-      setNewNote({ title: '', subjectId: '', isPremium: false, pdfUrl: '' });
-      toast.success('Note added successfully');
+  // State for File Upload
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setSelectedFile(e.target.files[0]);
     }
   };
 
-  const handleDeleteDomain = (id: string) => {
-    setDomains(domains.filter(d => d.id !== id));
-    setSubjects(subjects.filter(s => s.domainId !== id));
-    toast.success('Domain deleted');
+  const handleAddNote = async () => {
+    if (newNote.title && newNote.subjectId && selectedFile) {
+      try {
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+        formData.append('title', newNote.title);
+        formData.append('subjectId', newNote.subjectId);
+        formData.append('isPremium', String(newNote.isPremium)); // Convert boolean to string for FormData
+        formData.append('description', "Uploaded via Admin Dashboard");
+        formData.append('pages', "1");
+        formData.append('readTime', "1 min");
+
+        await api.post('/admin/notes/upload', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+
+        toast.success('Note uploaded successfully');
+        setNewNote({ title: '', subjectId: '', isPremium: false, pdfUrl: '' });
+        setSelectedFile(null);
+        // Refresh notes logic...
+        const fakeNote = {
+          id: 'temp-' + Date.now(),
+          title: newNote.title,
+          subjectId: newNote.subjectId,
+          isPremium: newNote.isPremium,
+          pdfUrl: '#'
+        };
+        setNotes(prev => [...prev, fakeNote]);
+
+      } catch (e: any) {
+        console.error(e);
+        toast.error("Failed to upload note");
+      }
+    } else {
+      toast.error("Please fill all fields and select a file");
+    }
   };
 
-  const handleDeleteSubject = (id: string) => {
-    setSubjects(subjects.filter(s => s.id !== id));
-    setNotes(notes.filter(n => n.subjectId !== id));
-    toast.success('Subject deleted');
+  const handleDeleteDomain = async (id: string) => {
+    try {
+      await api.delete(`/admin/domains/${id}`);
+      setDomains(domains.filter(d => d.id !== id));
+      // Optional: Cascade delete subjects locally for UI consistency,
+      // though fetching fresh data is better.
+      setSubjects(subjects.filter(s => s.domainId !== id));
+      toast.success('Domain deleted successfully');
+    } catch (e) {
+      toast.error("Failed to delete domain");
+    }
   };
 
-  const handleDeleteNote = (id: string) => {
-    setNotes(notes.filter(n => n.id !== id));
-    toast.success('Note deleted');
+  const handleDeleteSubject = async (id: string) => {
+    try {
+      await api.delete(`/admin/subjects/${id}`);
+      setSubjects(subjects.filter(s => s.id !== id));
+      setNotes(notes.filter(n => n.subjectId !== id));
+      toast.success('Subject deleted successfully');
+    } catch (e: any) {
+      console.error("Delete failed:", e);
+      // Robust error formatting
+      let msg = "Failed to delete subject";
+      if (e.response?.data) {
+        if (typeof e.response.data === 'string') msg = e.response.data;
+        else if (typeof e.response.data === 'object') msg = JSON.stringify(e.response.data);
+      } else if (e.message) {
+        msg = e.message;
+      }
+      console.error("Delete Subject Failed:", e);
+      toast.error(`Delete failed: ${msg}`);
+    }
+  };
+
+  const handleDeleteNote = async (id: string) => {
+    try {
+      await api.delete(`/admin/notes/${id}`);
+      setNotes(notes.filter(n => n.id !== id));
+      toast.success('Note deleted');
+    } catch (e) {
+      toast.error("Failed to delete note");
+    }
   };
 
   const toggleMessageRead = (id: string) => {
@@ -255,8 +475,8 @@ const Admin = () => {
 
   const filteredUsers = useMemo(() => {
     return registeredUsers.filter(user => {
-      const matchesSearch = user.name.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
-        user.email.toLowerCase().includes(userSearchQuery.toLowerCase());
+      const matchesSearch = (user.name?.toLowerCase() || "").includes(userSearchQuery.toLowerCase()) ||
+        (user.email?.toLowerCase() || "").includes(userSearchQuery.toLowerCase());
       const matchesCourse = filterCourse === 'all' || user.interactionsCount > 0;
       const matchesDomain = filterDomain === 'all' || user.id === 'u1';
       return matchesSearch && matchesCourse && matchesDomain;
@@ -270,9 +490,9 @@ const Admin = () => {
       const domainName = subjects.find(s => s.id === note?.subjectId)?.domainId;
 
       const matchesSearch =
-        log.contentId.toLowerCase().includes(logSearchQuery.toLowerCase()) ||
-        (user?.name.toLowerCase().includes(logSearchQuery.toLowerCase()) ?? false) ||
-        (note?.title.toLowerCase().includes(logSearchQuery.toLowerCase()) ?? false);
+        (log.contentId?.toLowerCase() || "").includes(logSearchQuery.toLowerCase()) ||
+        (user?.name?.toLowerCase() || "").includes(logSearchQuery.toLowerCase()) ||
+        (note?.title?.toLowerCase() || "").includes(logSearchQuery.toLowerCase());
 
       const matchesType = logFilterType === 'all' || log.type === logFilterType;
       const matchesDomain = logFilterDomain === 'all' || domainName === logFilterDomain;
@@ -523,18 +743,38 @@ const Admin = () => {
                   <div className="bg-card dark:bg-slate-900 p-8 rounded-[2.5rem] border border-border shadow-sm">
                     <div className="flex items-center justify-between mb-8">
                       <h3 className="text-lg font-bold tracking-tight text-foreground">System Status</h3>
-                      <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                      <div className={`w-2 h-2 rounded-full ${healthStatus?.database === 'connected' ? 'bg-emerald-500' : 'bg-red-500'} animate-pulse`} />
                     </div>
                     <div className="space-y-4">
                       <div className="space-y-2">
                         <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                          <span>Storage</span>
-                          <span>4.2 GB / 50 GB</span>
+                          <span>Database</span>
+                          <span className={healthStatus?.database === 'connected' ? 'text-emerald-500' : 'text-red-500'}>
+                            {healthStatus?.database === 'connected' ? 'Connected' : 'Disconnected'}
+                          </span>
                         </div>
                         <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
-                          <div className="h-full bg-primary/60 w-[8%] rounded-full" />
+                          <div className={`h-full ${healthStatus?.database === 'connected' ? 'bg-emerald-500' : 'bg-red-500'} w-full rounded-full`} />
                         </div>
                       </div>
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                          <span>Server API</span>
+                          <span className="text-primary">Online</span>
+                        </div>
+                        <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                          <div className="h-full bg-primary/60 w-full rounded-full animate-pulse" />
+                        </div>
+                      </div>
+
+                      {/* Error Display */}
+                      {healthStatus?.error && (
+                        <div className="mt-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] font-mono leading-relaxed">
+                          Error: {healthStatus.error}
+                          <br />
+                          <span className="opacity-50">Check if backend is running on port 8080.</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -589,7 +829,9 @@ const Admin = () => {
                           </div>
                           <div>
                             <p className="text-sm font-bold text-foreground">{domain.name}</p>
-                            <p className="text-[10px] font-bold text-primary uppercase tracking-widest opacity-80">{domain.courseType}</p>
+                            <p className="text-[10px] font-bold text-primary uppercase tracking-widest opacity-80">
+                              {domain.courseType} <span className="opacity-40 text-muted-foreground ml-2 font-mono">{domain.id}</span>
+                            </p>
                           </div>
                         </div>
                         <Button variant="ghost" size="sm" onClick={() => handleDeleteDomain(domain.id)} className="h-8 w-8 p-0 text-muted-foreground/40 hover:text-destructive hover:bg-destructive/5 transition-all">
@@ -618,15 +860,32 @@ const Admin = () => {
                       onChange={e => setNewSubject({ ...newSubject, name: e.target.value })}
                       className="h-11 rounded-xl bg-muted/50 border-input text-foreground placeholder:text-muted-foreground/40 text-sm focus:ring-2 focus:ring-primary/20 transition-all font-medium col-span-2"
                     />
+
+                    {/* Stream Selection Filter */}
+                    <Select value={subjectCreationStream} onValueChange={(v: 'engineering' | 'diploma') => setSubjectCreationStream(v)}>
+                      <SelectTrigger className="h-11 rounded-xl bg-muted/50 border-input text-foreground text-[10px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-primary/20 transition-all">
+                        <SelectValue placeholder="Stream" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-card dark:bg-slate-900 border-border">
+                        <SelectItem value="engineering">Engineering</SelectItem>
+                        <SelectItem value="diploma">Diploma</SelectItem>
+                      </SelectContent>
+                    </Select>
+
+                    {/* Filtered Domain Selection */}
                     <Select onValueChange={(v) => setNewSubject({ ...newSubject, domainId: v })}>
                       <SelectTrigger className="h-11 rounded-xl bg-muted/50 border-input text-foreground text-[10px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-primary/20 transition-all">
                         <SelectValue placeholder="Select Domain" />
                       </SelectTrigger>
                       <SelectContent className="bg-card dark:bg-slate-900 border-border">
-                        {domains.map(d => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}
+                        {domains
+                          .filter(d => d.courseType === subjectCreationStream)
+                          .map(d => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)
+                        }
                       </SelectContent>
                     </Select>
-                    <div className="flex items-center gap-3 px-4 bg-muted/50 border border-input rounded-xl h-11">
+
+                    <div className="flex items-center gap-3 px-4 bg-muted/50 border border-input rounded-xl h-11 col-span-2">
                       <input
                         type="checkbox"
                         checked={newSubject.isPremium}
@@ -672,7 +931,57 @@ const Admin = () => {
                   </Button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10 p-8 rounded-2xl bg-muted/50 dark:bg-white/5 border border-border">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10 p-8 rounded-2xl bg-muted/50 dark:bg-white/5 border border-border">
+
+                  {/* Stream Select */}
+                  <div className="space-y-2">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Stream</p>
+                    <Select value={noteCreationStream} onValueChange={(v: 'engineering' | 'diploma') => {
+                      setNoteCreationStream(v);
+                      setNoteCreationDomainId(''); // Reset domain
+                    }}>
+                      <SelectTrigger className="h-11 bg-card border-input rounded-xl text-[10px] font-bold uppercase tracking-widest">
+                        <SelectValue placeholder="Select Stream" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-card dark:bg-slate-900 border-border">
+                        <SelectItem value="engineering">Engineering</SelectItem>
+                        <SelectItem value="diploma">Diploma</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Domain Select */}
+                  <div className="space-y-2">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Domain</p>
+                    <Select value={noteCreationDomainId} onValueChange={setNoteCreationDomainId}>
+                      <SelectTrigger className="h-11 bg-card border-input rounded-xl text-[10px] font-bold uppercase tracking-widest">
+                        <SelectValue placeholder="Select Domain" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-card dark:bg-slate-900 border-border">
+                        {domains
+                          .filter(d => d.courseType === noteCreationStream)
+                          .map(d => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)
+                        }
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Subject Select */}
+                  <div className="space-y-2 col-span-1 md:col-span-2">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Subject</p>
+                    <Select onValueChange={(v) => setNewNote({ ...newNote, subjectId: v })}>
+                      <SelectTrigger className="h-11 bg-card border-input rounded-xl text-[10px] font-bold uppercase tracking-widest">
+                        <SelectValue placeholder="Select Subject" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-card dark:bg-slate-900 border-border">
+                        {subjects
+                          .filter(s => s.domainId === noteCreationDomainId)
+                          .map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)
+                        }
+                      </SelectContent>
+                    </Select>
+                  </div>
+
                   <div className="space-y-2">
                     <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Title</p>
                     <Input
@@ -682,27 +991,18 @@ const Admin = () => {
                       className="h-11 bg-card border-input rounded-xl text-sm font-medium"
                     />
                   </div>
+
                   <div className="space-y-2">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Subject</p>
-                    <Select onValueChange={(v) => setNewNote({ ...newNote, subjectId: v })}>
-                      <SelectTrigger className="h-11 bg-card border-input rounded-xl text-[10px] font-bold uppercase tracking-widest">
-                        <SelectValue placeholder="Select Subject" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-card dark:bg-slate-900 border-border">
-                        {subjects.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">PDF URL</p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">PDF File</p>
                     <Input
-                      placeholder="URL to PDF"
-                      value={newNote.pdfUrl}
-                      onChange={e => setNewNote({ ...newNote, pdfUrl: e.target.value })}
-                      className="h-11 bg-card border-input rounded-xl text-sm font-medium"
+                      type="file"
+                      accept=".pdf"
+                      onChange={handleFileChange}
+                      className="h-11 bg-card border-input rounded-xl text-sm font-medium file:bg-primary file:text-white file:rounded-lg file:mr-4 file:border-0 file:px-4 file:text-xs file:font-bold file:uppercase file:tracking-widest hover:file:bg-primary/90 transition-all cursor-pointer"
                     />
                   </div>
-                  <div className="flex items-center gap-4 pt-4">
+
+                  <div className="flex items-center gap-4 pt-4 md:col-span-2">
                     <label className="flex items-center gap-3 cursor-pointer">
                       <input
                         type="checkbox"

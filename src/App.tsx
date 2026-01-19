@@ -39,8 +39,9 @@ const App = () => {
   });
 
   // Launch state - if it's admin OR stored in localStorage, we assume "launched"
+  // TEMPORARY BYPASS FOR TESTING
   const [isLaunched, setIsLaunched] = useState(() => {
-    return isAdminRoute || localStorage.getItem('launch_completed') === 'true';
+    return true; // isAdminRoute || localStorage.getItem('launch_completed') === 'true';
   });
 
   const handleLaunchComplete = () => {

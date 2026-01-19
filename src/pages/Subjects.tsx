@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Link, useParams } from "react-router-dom";
@@ -11,51 +11,7 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import BackgroundAtmosphere from "@/components/ui/BackgroundAtmosphere";
-
-// Subject Data Mock
-const subjectsByDomain: Record<string, { id: string; title: string; isPremium: boolean; code: string }[]> = {
-  computer: [
-    { id: "dsa", title: "Data Structures", isPremium: false, code: "CSC301" },
-    { id: "os", title: "Operating Systems", isPremium: false, code: "CSC302" },
-    { id: "dbms", title: "Database Mgmt Systems", isPremium: true, code: "CSC303" },
-    { id: "cn", title: "Computer Networks", isPremium: false, code: "CSC304" },
-    { id: "se", title: "Software Engineering", isPremium: true, code: "CSC305" },
-    { id: "ai", title: "Artificial Intelligence", isPremium: true, code: "CSC306" },
-  ],
-  it: [
-    { id: "web", title: "Web Development", isPremium: false, code: "ITC301" },
-    { id: "cloud", title: "Cloud Computing", isPremium: true, code: "ITC302" },
-    { id: "security", title: "Cyber Security", isPremium: false, code: "ITC303" },
-    { id: "mobile", title: "Mobile App Dev", isPremium: true, code: "ITC304" },
-  ],
-  mechanical: [
-    { id: "thermo", title: "Thermodynamics", isPremium: false, code: "MEC301" },
-    { id: "manufacturing", title: "Manufacturing Processes", isPremium: false, code: "MEC302" },
-    { id: "design", title: "Machine Design", isPremium: true, code: "MEC303" },
-    { id: "fluid", title: "Fluid Mechanics", isPremium: false, code: "MEC304" },
-  ],
-  extc: [
-    { id: "digital", title: "Digital Electronics", isPremium: false, code: "EXT301" },
-    { id: "signals", title: "Signals & Systems", isPremium: true, code: "EXT302" },
-    { id: "comm", title: "Communication Systems", isPremium: false, code: "EXT303" },
-    { id: "microprocessor", title: "Microprocessors", isPremium: true, code: "EXT304" },
-  ],
-  electrical: [
-    { id: "power", title: "Power Systems", isPremium: false, code: "ELC301" },
-    { id: "machines", title: "Electrical Machines", isPremium: true, code: "ELC302" },
-    { id: "control", title: "Control Systems", isPremium: false, code: "ELC303" },
-  ],
-  chemical: [
-    { id: "process", title: "Process Engineering", isPremium: false, code: "CHE301" },
-    { id: "reactions", title: "Chemical Reactions", isPremium: true, code: "CHE302" },
-    { id: "heat", title: "Heat Transfer", isPremium: false, code: "CHE303" },
-  ],
-  civil: [
-    { id: "structures", title: "Structural Analysis", isPremium: false, code: "CIV301" },
-    { id: "construction", title: "Construction Mgmt", isPremium: true, code: "CIV302" },
-    { id: "surveying", title: "Surveying", isPremium: false, code: "CIV303" },
-  ],
-};
+import api from "@/lib/api";
 
 const domainNames: Record<string, string> = {
   computer: "Computer Engineering",
@@ -67,24 +23,57 @@ const domainNames: Record<string, string> = {
   civil: "Civil Engineering",
 };
 
+interface Subject {
+  id: string;
+  title: string;
+  code: string;
+  isPremium: boolean;
+  domainId: string;
+}
+
 const Subjects = () => {
   const { courseType, domain } = useParams();
-  const allSubjects = subjectsByDomain[domain || ""] || [];
-  const domainTitle = domainNames[domain || ""] || "Unknown Domain";
+  const domainTitle = domainNames[domain || ""] || (domain?.toUpperCase() || "Unknown Domain");
   const courseTitle = courseType === "diploma" ? "Diploma" : "Engineering";
 
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const auth = useAuth();
   const [showPremiumPopup, setShowPremiumPopup] = useState(false);
   const [showSignupPopup, setShowSignupPopup] = useState(false);
   const [showUserInfoPopup, setShowUserInfoPopup] = useState(false);
 
-  const filteredSubjects = allSubjects.filter(sub =>
+  useEffect(() => {
+    const fetchSubjects = async () => {
+      try {
+        setLoading(true);
+        // Construct real DB ID from URL params (e.g., 'computer' -> 'eng-computer')
+        // DataSeeder uses 'eng-' and 'dip-' prefixes
+        const prefix = courseType === 'diploma' ? 'dip-' : 'eng-';
+        const dbDomainId = prefix + domain;
+
+        const res = await api.get(`/subjects/domain/${dbDomainId}`);
+        setSubjects(res.data);
+      } catch (err) {
+        console.error("Failed to fetch subjects", err);
+        toast.error("Could not load subjects. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (domain) {
+      fetchSubjects();
+    }
+  }, [domain]);
+
+  const filteredSubjects = subjects.filter(sub =>
     sub.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     sub.code.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleSubjectClick = (e: React.MouseEvent, subject: { id: string; isPremium: boolean }) => {
+  const handleSubjectClick = (e: React.MouseEvent, subject: Subject) => {
     if (subject.isPremium && !auth.user?.isPremium) {
       e.preventDefault();
       setShowPremiumPopup(true);
@@ -153,8 +142,16 @@ const Subjects = () => {
             </div>
           </div>
 
+          {/* Loading State */}
+          {loading && (
+            <div className="text-center py-20">
+              <Spinner className="w-10 h-10 mx-auto text-primary" />
+              <p className="mt-4 text-muted-foreground animate-pulse">Loading Subjects...</p>
+            </div>
+          )}
+
           {/* Empty State */}
-          {filteredSubjects.length === 0 && (
+          {!loading && filteredSubjects.length === 0 && (
             <div className="text-center py-20 bg-card rounded-[2.5rem] border border-dashed border-border">
               <Sparkles className="mx-auto text-muted-foreground/20 mb-4" size={48} strokeWidth={1.5} />
               <p className="text-xl text-muted-foreground font-bold opacity-60">No subjects found matching "{searchTerm}"</p>
@@ -168,74 +165,76 @@ const Subjects = () => {
           )}
 
           {/* Subjects Grid/List */}
-          <div className="flex flex-col sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
-            {filteredSubjects.map((subject, index) => (
-              <Link
-                key={subject.id}
-                to={`/study/${courseType}/${domain}/${subject.id}`}
-                onClick={(e) => handleSubjectClick(e, subject)}
-                className="group relative animate-fade-up"
-                style={{ animationDelay: `${(index + 1) * 0.05}s` }}
-              >
-                {/* Desktop Card View / Mobile List Item */}
-                <div className={`
+          {!loading && (
+            <div className="flex flex-col sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+              {filteredSubjects.map((subject, index) => (
+                <Link
+                  key={subject.id}
+                  to={`/study/${courseType}/${domain}/${subject.id}`}
+                  onClick={(e) => handleSubjectClick(e, subject)}
+                  className="group relative animate-fade-up"
+                  style={{ animationDelay: `${(index + 1) * 0.05}s` }}
+                >
+                  {/* Desktop Card View / Mobile List Item */}
+                  <div className={`
                     h-full glass-card transition-all duration-300 relative overflow-hidden flex
                     rounded-[1.5rem] sm:rounded-[2.5rem] p-4 sm:p-6 lg:p-8 
                     flex-row sm:flex-col items-center sm:items-stretch gap-4 sm:gap-0
                     hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-1
                   `}>
 
-                  {/* Icon/Badge - Side in mobile, Top in desktop */}
-                  <div className="flex sm:justify-between items-center sm:items-start sm:mb-6 shrink-0">
-                    <div className={cn(
-                      "w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl flex items-center justify-center transition-colors shadow-inner",
-                      subject.isPremium ? 'bg-amber-500/10 text-amber-500' : 'bg-primary/10 text-primary'
-                    )}>
-                      {subject.isPremium ? <Crown size={20} className="sm:w-6 sm:h-6" /> : <BookOpen size={20} className="sm:w-6 sm:h-6" />}
-                    </div>
-                    <span className="hidden sm:flex bg-muted/50 text-muted-foreground/60 text-[10px] font-bold px-2 py-1 rounded-full border border-border items-center gap-1 uppercase tracking-widest">
-                      <Hash size={10} /> {subject.code}
-                    </span>
-                  </div>
-
-                  <div className="flex-1 min-w-0">
-                    {/* Code tag for mobile only */}
-                    <div className="sm:hidden mb-1">
-                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{subject.code}</span>
+                    {/* Icon/Badge - Side in mobile, Top in desktop */}
+                    <div className="flex sm:justify-between items-center sm:items-start sm:mb-6 shrink-0">
+                      <div className={cn(
+                        "w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl flex items-center justify-center transition-colors shadow-inner",
+                        subject.isPremium ? 'bg-amber-500/10 text-amber-500' : 'bg-primary/10 text-primary'
+                      )}>
+                        {subject.isPremium ? <Crown size={20} className="sm:w-6 sm:h-6" /> : <BookOpen size={20} className="sm:w-6 sm:h-6" />}
+                      </div>
+                      <span className="hidden sm:flex bg-muted/50 text-muted-foreground/60 text-[10px] font-bold px-2 py-1 rounded-full border border-border items-center gap-1 uppercase tracking-widest">
+                        <Hash size={10} /> {subject.code}
+                      </span>
                     </div>
 
-                    <h3 className="font-display text-base sm:text-xl font-bold text-foreground group-hover:text-primary transition-colors sm:line-clamp-2 sm:mb-2">
-                      {subject.title}
-                    </h3>
+                    <div className="flex-1 min-w-0">
+                      {/* Code tag for mobile only */}
+                      <div className="sm:hidden mb-1">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{subject.code}</span>
+                      </div>
 
-                    {/* Meta info for mobile only */}
-                    <p className="sm:hidden text-[10px] text-gray-500">
-                      {subject.isPremium ? 'Premium Access' : 'Free Notes'}
-                    </p>
-                  </div>
+                      <h3 className="font-display text-base sm:text-xl font-bold text-foreground group-hover:text-primary transition-colors sm:line-clamp-2 sm:mb-2">
+                        {subject.title}
+                      </h3>
 
-                  {/* Action block - Hidden text on mobile, full width on desktop */}
-                  <div className="sm:mt-auto sm:pt-6 flex items-center justify-end sm:justify-between sm:border-t sm:border-border shrink-0">
-                    <span className={cn(
-                      "hidden sm:inline text-[10px] font-bold uppercase tracking-widest opacity-60",
-                      subject.isPremium ? 'text-amber-500' : 'text-muted-foreground group-hover:text-primary transition-colors'
-                    )}>
-                      {subject.isPremium && !auth.user?.isPremium ? 'Locked' : 'View Notes'}
-                    </span>
+                      {/* Meta info for mobile only */}
+                      <p className="sm:hidden text-[10px] text-gray-500">
+                        {subject.isPremium ? 'Premium Access' : 'Free Notes'}
+                      </p>
+                    </div>
 
-                    <div className={cn(
-                      "w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg",
-                      subject.isPremium && !auth.user?.isPremium
-                        ? 'bg-muted/50 text-muted-foreground/40'
-                        : 'bg-primary text-white group-hover:translate-x-1 sm:group-hover:translate-x-1.5 shadow-primary/20'
-                    )}>
-                      {subject.isPremium && !auth.user?.isPremium ? <Lock size={14} /> : <ArrowRight size={14} />}
+                    {/* Action block - Hidden text on mobile, full width on desktop */}
+                    <div className="sm:mt-auto sm:pt-6 flex items-center justify-end sm:justify-between sm:border-t sm:border-border shrink-0">
+                      <span className={cn(
+                        "hidden sm:inline text-[10px] font-bold uppercase tracking-widest opacity-60",
+                        subject.isPremium ? 'text-amber-500' : 'text-muted-foreground group-hover:text-primary transition-colors'
+                      )}>
+                        {subject.isPremium && !auth.user?.isPremium ? 'Locked' : 'View Notes'}
+                      </span>
+
+                      <div className={cn(
+                        "w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg",
+                        subject.isPremium && !auth.user?.isPremium
+                          ? 'bg-muted/50 text-muted-foreground/40'
+                          : 'bg-primary text-white group-hover:translate-x-1 sm:group-hover:translate-x-1.5 shadow-primary/20'
+                      )}>
+                        {subject.isPremium && !auth.user?.isPremium ? <Lock size={14} /> : <ArrowRight size={14} />}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </Link>
-            ))}
-          </div>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
       </main>
       <Footer />
@@ -267,5 +266,13 @@ const Subjects = () => {
     </div>
   );
 };
+
+// Simple Spinner Component (inline for simplicity if not exists)
+const Spinner = ({ className }: { className?: string }) => (
+  <svg className={cn("animate-spin", className)} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+  </svg>
+);
 
 export default Subjects;
