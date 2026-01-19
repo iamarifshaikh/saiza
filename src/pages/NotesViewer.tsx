@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
@@ -11,6 +11,17 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import BackgroundAtmosphere from "@/components/ui/BackgroundAtmosphere";
 
+// React-PDF Imports
+import { Document, Page, pdfjs } from 'react-pdf';
+import 'react-pdf/dist/Page/AnnotationLayer.css';
+import 'react-pdf/dist/Page/TextLayer.css';
+
+// Configure PDF Worker
+pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+  'pdfjs-dist/build/pdf.worker.min.mjs',
+  import.meta.url,
+).toString();
+
 const NotesViewer = () => {
   const { courseType, domain, subject } = useParams();
   const location = useLocation();
@@ -21,11 +32,31 @@ const NotesViewer = () => {
   const [isSaved, setIsSaved] = useState(false);
   const [showTopicsDrawer, setShowTopicsDrawer] = useState(false);
   const [isFocusMode, setIsFocusMode] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState<number>(0);
 
   // Page Navigation State
   const [currentPage, setCurrentPage] = useState(1);
   const [direction, setDirection] = useState<'next' | 'prev'>('next');
   const [_isFlipping, setIsFlipping] = useState(false);
+  const [numPages, setNumPages] = useState<number | null>(null);
+
+  // Resize observer for responsive PDF width
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.contentRect) {
+          setContainerWidth(entry.contentRect.width);
+        }
+      }
+    });
+
+    resizeObserver.observe(containerRef.current);
+    return () => resizeObserver.disconnect();
+  }, [containerRef]);
+
 
   // Focus Mode Toggle
   const toggleFocusMode = async () => {
@@ -75,11 +106,17 @@ const NotesViewer = () => {
   const hasAccess = true; // Temporary debug override to always show content
   const showPremiumBlock = !hasAccess;
 
-  // Simulate loading
+  // Simulate loading - removed manual timeout, relying on PDF load
+  // But we keep initial loading state for UI smoothness
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 1500);
+    const timer = setTimeout(() => setIsLoading(false), 1000);
     return () => clearTimeout(timer);
   }, []);
+
+  const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
+    setNumPages(numPages);
+    setIsLoading(false);
+  };
 
   const handleDownload = () => {
     if (!isLoggedIn) {
@@ -92,6 +129,8 @@ const NotesViewer = () => {
       return;
     }
 
+    // Direct download link
+    window.open(noteDetails.pdfUrl, '_blank');
     toast.success("Download started...");
   };
 
@@ -103,7 +142,8 @@ const NotesViewer = () => {
 
   const changePage = (newDir: 'next' | 'prev') => {
     if (newDir === 'next') {
-      if (currentPage >= 10) return;
+      if (numPages && currentPage >= numPages) return;
+      if (!numPages && currentPage >= 10) return; // Fallback limit
 
       // Check for signup requirement after page 4
       if (!isLoggedIn && currentPage >= 4) {
@@ -143,7 +183,7 @@ const NotesViewer = () => {
                     {noteDetails.title}
                   </h1>
                   <p className="text-[10px] lg:text-sm text-muted-foreground flex items-center gap-2 font-medium">
-                    <span className="flex items-center gap-1"><FileText size={10} className="lg:w-3 lg:h-3" /> Page {currentPage} of {noteDetails.pages}</span>
+                    <span className="flex items-center gap-1"><FileText size={10} className="lg:w-3 lg:h-3" /> Page {currentPage} of {numPages || noteDetails.pages || '?'}</span>
                     <span>•</span>
                     <span className="truncate">{noteDetails.author}</span>
                   </p>
@@ -198,17 +238,12 @@ const NotesViewer = () => {
 
               {/* Main PDF View */}
               <div
-                className="w-full lg:col-span-9 relative min-h-[500px] lg:min-h-[600px] lg:h-[800px] perspective-1000 select-none pb-12 lg:pb-0"
+                className="w-full lg:col-span-9 relative min-h-[500px] lg:min-h-[600px] lg:h-auto perspective-1000 select-none pb-12 lg:pb-0 flex justify-center"
                 onContextMenu={(e) => e.preventDefault()}
+                ref={containerRef}
               >
-                {isLoading ? (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/40 backdrop-blur-xl rounded-[1.5rem] lg:rounded-[2rem] border border-white/5 shadow-2xl">
-                    <div className="w-10 h-10 lg:w-12 lg:h-12 border-4 border-primary/10 border-t-primary rounded-full animate-spin mb-4" />
-                    <p className="text-sm lg:text-base text-muted-foreground font-black uppercase tracking-[0.2em] animate-pulse opacity-60">Initializing Reader</p>
-                  </div>
-                ) : !showPremiumBlock ? (
+                {!isLoading && !showPremiumBlock && noteDetails.pdfUrl ? (
                   <div className="w-full h-full flex flex-col items-center justify-center relative">
-
                     {/* Desktop Navigation Buttons (Floating) */}
                     <button
                       onClick={() => changePage('prev')}
@@ -220,7 +255,7 @@ const NotesViewer = () => {
 
                     <button
                       onClick={() => changePage('next')}
-                      disabled={currentPage >= 10}
+                      disabled={numPages ? currentPage >= numPages : false}
                       className="hidden lg:flex absolute right-[-24px] top-1/2 -translate-y-1/2 z-30 w-12 h-12 rounded-full bg-slate-900/60 backdrop-blur-xl shadow-2xl border border-white/5 items-center justify-center text-foreground hover:text-primary hover:scale-110 disabled:opacity-0 disabled:pointer-events-none transition-all duration-300"
                     >
                       <ChevronRight size={24} />
@@ -246,46 +281,45 @@ const NotesViewer = () => {
 
                       <button
                         onClick={() => changePage('next')}
-                        disabled={currentPage >= 10}
+                        disabled={numPages ? currentPage >= numPages : false}
                         className="w-10 h-10 rounded-full flex items-center justify-center text-foreground hover:text-primary disabled:opacity-30"
                       >
                         <ChevronRight size={24} />
                       </button>
                     </div>
 
-                    {/* PDF Display */}
-                    <div
-                      key={currentPage}
-                      className={cn(
-                        "bg-white shadow-2xl w-full max-w-4xl h-full rounded-[1rem] p-1 flex flex-col relative overflow-hidden transition-all",
-                        direction === 'next' ? "animate-in slide-in-from-right-8 fade-in duration-500 ease-out" : "animate-in slide-in-from-left-8 fade-in duration-500 ease-out"
-                      )}
-                    >
-                      {noteDetails.pdfUrl ? (
-                        (() => {
-                          console.log("DEBUG: Rendering PDF URL:", noteDetails.pdfUrl);
-                          return (
-                            <iframe
-                              src={noteDetails.pdfUrl.startsWith('http') ? noteDetails.pdfUrl : `http://localhost:8080${noteDetails.pdfUrl}#page=${currentPage}`}
-                              className="w-full h-full border-0 rounded-lg bg-gray-100"
-                              title="PDF Viewer"
-                            />
-                          );
-                        })()
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-red-500 font-bold">
-                          PDF URL not found
-                        </div>
-                      )}
+                    <div className={cn(
+                      "shadow-2xl rounded-[1rem] overflow-hidden transition-opacity duration-300 bg-white",
+                      isLoading ? "opacity-0" : "opacity-100"
+                    )}>
+                      <Document
+                        file={noteDetails.pdfUrl}
+                        onLoadSuccess={onDocumentLoadSuccess}
+                        loading={
+                          <div className="h-[600px] w-full flex items-center justify-center">
+                            <div className="w-10 h-10 border-4 border-primary/10 border-t-primary rounded-full animate-spin" />
+                          </div>
+                        }
+                        error={
+                          <div className="h-[400px] w-full flex flex-col items-center justify-center text-red-500 gap-2">
+                            <FileText size={48} />
+                            <p>Failed to load PDF.</p>
+                          </div>
+                        }
+                      >
+                        <Page
+                          pageNumber={currentPage}
+                          width={containerWidth ? Math.min(containerWidth, 900) : undefined}
+                          className="max-w-full"
+                          renderTextLayer={false}
+                          renderAnnotationLayer={false}
+                        />
+                      </Document>
                     </div>
-
-                    {/* Page Shadow Pile Effect - Reduced for mobile */}
-                    <div className="absolute top-1 left-1 lg:top-2 lg:left-2 w-full max-w-4xl h-full bg-white rounded-[1rem] shadow-sm -z-10" />
-                    <div className="hidden lg:block absolute top-4 left-4 w-full max-w-4xl h-full bg-white rounded-[1rem] shadow-sm -z-20" />
-
                   </div>
-                ) : (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-white rounded-[1.5rem] lg:rounded-[2rem] shadow-sm overflow-hidden z-10 px-4">
+                ) : showPremiumBlock ? (
+                  /* Premium Block UI */
+                  <div className="w-full h-[600px] bg-white rounded-[1.5rem] lg:rounded-[2rem] shadow-sm overflow-hidden z-10 px-4 relative flex flex-col items-center justify-center">
                     <div className="absolute inset-0 bg-white/60 backdrop-blur-sm z-0" />
                     <div className="relative z-10 p-4 lg:p-6 text-center">
                       <div className="w-14 h-14 lg:w-20 lg:h-20 bg-primary/10 rounded-full flex items-center justify-center mb-4 lg:mb-6 animate-bounce-slow mx-auto">
@@ -310,14 +344,12 @@ const NotesViewer = () => {
                         {!isLoggedIn ? 'Sign In' : 'Unlock Now - ₹599/yr'}
                       </Button>
                     </div>
-
-                    {/* Blurred background mock - Hidden on mobile for performance/distraction */}
-                    <div className="hidden lg:block absolute inset-0 -z-10 p-12 opacity-30 blur-sm pointer-events-none">
-                      <div className="w-3/4 h-8 bg-gray-800 rounded mb-8" />
-                      <div className="space-y-4">
-                        {[1, 2, 3, 4, 5, 6, 7, 8].map(i => <div key={i} className="w-full h-4 bg-gray-300 rounded" />)}
-                      </div>
-                    </div>
+                  </div>
+                ) : (
+                  /* Loading State */
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/40 backdrop-blur-xl rounded-[1.5rem] lg:rounded-[2rem] border border-white/5 shadow-2xl h-[600px]">
+                    <div className="w-10 h-10 lg:w-12 lg:h-12 border-4 border-primary/10 border-t-primary rounded-full animate-spin mb-4" />
+                    <p className="text-sm lg:text-base text-muted-foreground font-black uppercase tracking-[0.2em] animate-pulse opacity-60">Initializing Reader</p>
                   </div>
                 )}
               </div>
@@ -416,12 +448,12 @@ const NotesViewer = () => {
           </div>
 
           {/* Centered Large Document View */}
-          <div className="w-full max-w-5xl h-[85vh] lg:h-[80vh] px-4 lg:px-0 relative perspective-1000">
+          <div className="w-full max-w-5xl h-[85vh] lg:h-[80vh] px-4 lg:px-0 relative perspective-1000 flex justify-center items-center" ref={containerRef}>
             {/* Navigation Buttons */}
             <button
               onClick={() => changePage('prev')}
               disabled={currentPage === 1}
-              className="absolute left-[-20px] lg:left-[-100px] top-1/2 -translate-y-1/2 z-30 w-12 h-12 lg:w-20 lg:h-20 rounded-full bg-white/5 border border-white/10 backdrop-blur-md flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 disabled:opacity-0 transition-all duration-300"
+              className="absolute left-[20px] lg:left-[-100px] top-1/2 -translate-y-1/2 z-30 w-12 h-12 lg:w-20 lg:h-20 rounded-full bg-white/5 border border-white/10 backdrop-blur-md flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 disabled:opacity-0 transition-all duration-300"
             >
               <ChevronLeft size={48} className="hidden lg:block" />
               <ChevronLeft size={32} className="lg:hidden" />
@@ -429,41 +461,33 @@ const NotesViewer = () => {
 
             <button
               onClick={() => changePage('next')}
-              disabled={currentPage >= 10}
-              className="absolute right-[-20px] lg:right-[-100px] top-1/2 -translate-y-1/2 z-30 w-12 h-12 lg:w-20 lg:h-20 rounded-full bg-white/5 border border-white/10 backdrop-blur-md flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 disabled:opacity-0 transition-all duration-300"
+              disabled={numPages ? currentPage >= numPages : false}
+              className="absolute right-[20px] lg:right-[-100px] top-1/2 -translate-y-1/2 z-30 w-12 h-12 lg:w-20 lg:h-20 rounded-full bg-white/5 border border-white/10 backdrop-blur-md flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 disabled:opacity-0 transition-all duration-300"
             >
               <ChevronRight size={48} className="hidden lg:block" />
               <ChevronRight size={32} className="lg:hidden" />
             </button>
 
             {/* Page Content */}
-            <div
-              key={`focus-${currentPage}`}
-              className={cn(
-                "w-full h-full bg-white rounded-[1.5rem] lg:rounded-[2rem] shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-hidden transition-all duration-500",
-                direction === 'next' ? "animate-in slide-in-from-right-12 fade-in mt-2" : "animate-in slide-in-from-left-12 fade-in mt-2"
-              )}
-            >
-              <div className="w-full h-full p-6 lg:p-16 flex flex-col font-sans">
-                <div className="flex justify-between items-center text-gray-400 text-[10px] lg:text-xs font-mono uppercase mb-8 lg:mb-12 border-b border-gray-100 pb-4">
-                  <span className="font-bold">Focus Mode · Page {currentPage}</span>
-                  <span className="text-gray-300 font-bold tracking-widest uppercase">Premium Notes</span>
-                </div>
-
-                <div className="space-y-6 lg:space-y-8 flex-1">
-                  <div className="h-8 lg:h-12 bg-gray-900 rounded-lg w-3/4" />
-                  <div className="space-y-3">
-                    {[1, 2, 3, 4, 5, 6].map(i => <div key={i} className="h-2 lg:h-3 bg-gray-100 rounded-full w-full" />)}
-                  </div>
-                  <div className="py-6 lg:py-10 flex-1 flex items-center justify-center">
-                    <div className="aspect-video w-full bg-gray-50 rounded-[1.5rem] border-2 border-dashed border-gray-100 flex items-center justify-center text-gray-300 text-sm font-medium">
-                      Technical Visualization {currentPage}
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    {[1, 2, 3].map(i => <div key={i} className="h-2 lg:h-3 bg-gray-100 rounded-full w-full" />)}
-                  </div>
-                </div>
+            <div className="w-full h-full flex flex-col items-center justify-center">
+              <div className="bg-white rounded-[1rem] overflow-hidden shadow-2xl max-h-full">
+                {!isLoading && noteDetails.pdfUrl && (
+                  <Document
+                    file={noteDetails.pdfUrl}
+                    onLoadSuccess={onDocumentLoadSuccess}
+                    loading={
+                      <div className="text-white/50">Loading PDF...</div>
+                    }
+                  >
+                    <Page
+                      pageNumber={currentPage}
+                      width={containerWidth ? Math.min(containerWidth, 1000) : undefined}
+                      renderTextLayer={false}
+                      renderAnnotationLayer={false}
+                      className="max-w-full"
+                    />
+                  </Document>
+                )}
               </div>
             </div>
           </div>
@@ -472,7 +496,7 @@ const NotesViewer = () => {
           <div className="fixed bottom-0 left-0 right-0 h-1.5 bg-white/5">
             <div
               className="h-full bg-primary transition-all duration-700 ease-out shadow-[0_0_10px_rgba(12,165,233,0.5)]"
-              style={{ width: `${(currentPage / 10) * 100}%` }}
+              style={{ width: `${(currentPage / (numPages || 10)) * 100}%` }}
             />
           </div>
         </div>
