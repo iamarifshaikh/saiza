@@ -27,7 +27,7 @@ interface Note {
 
 const NotesList = () => {
   const { courseType, domain, subject } = useParams();
-  const location = useLocation();
+  // const location = useLocation(); // Unused
   const auth = useAuth();
 
   const [notes, setNotes] = useState<Note[]>([]);
@@ -77,8 +77,8 @@ const NotesList = () => {
     toast.success('Welcome to Premium! Enjoy unlimited access.');
   };
 
-  const handleSignup = (email: string, password: string, name: string, semester?: string, branch?: string) => {
-    const success = auth.signUp(email, password, name);
+  const handleSignup = async (email: string, password: string, name: string, semester?: string, branch?: string) => {
+    const success = await auth.signUp(email, password, name);
     if (semester || branch) {
       console.log("Additional info:", semester, branch);
     }
@@ -89,8 +89,13 @@ const NotesList = () => {
     return success;
   };
 
-  const handleCompleteInfo = (college: string, semester: string) => {
-    auth.completeUserInfo(college, semester);
+  const handleCompleteInfo = (college: string, semester: string, type: string, fullName?: string) => {
+    // Pass courseType from params if not provided, though UserInfoPopup provides logic.
+    // Actually UserInfoPopup passes (college, semester, courseType, fullName).
+    // So we just need to match the signature.
+    // Wait, UserInfoPopup onComplete signature is (college, semester, courseType, fullName).
+    // auth.completeUserInfo signature is (college, semester, courseType, name).
+    auth.completeUserInfo(college, semester, type, fullName);
     setShowUserInfoPopup(false);
   };
 

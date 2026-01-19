@@ -86,8 +86,8 @@ const Subjects = () => {
     toast.success('Welcome to Premium! Enjoy unlimited access.');
   };
 
-  const handleSignup = (email: string, password: string, name: string, semester?: string, branch?: string) => {
-    const success = auth.signUp(email, password, name);
+  const handleSignup = async (email: string, password: string, name: string, semester?: string, branch?: string) => {
+    const success = await auth.signUp(email, password, name);
     if (semester || branch) {
       console.log("Additional info:", semester, branch);
     }
@@ -98,8 +98,8 @@ const Subjects = () => {
     return success;
   };
 
-  const handleCompleteInfo = (college: string, semester: string) => {
-    auth.completeUserInfo(college, semester);
+  const handleCompleteInfo = (college: string, semester: string, type: string, fullName?: string) => {
+    auth.completeUserInfo(college, semester, type, fullName);
     setShowUserInfoPopup(false);
   };
 

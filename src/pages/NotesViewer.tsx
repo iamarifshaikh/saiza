@@ -37,7 +37,7 @@ const NotesViewer = () => {
 
   // Page Navigation State
   const [currentPage, setCurrentPage] = useState(1);
-  const [direction, setDirection] = useState<'next' | 'prev'>('next');
+  // const [direction, setDirection] = useState<'next' | 'prev'>('next'); // Unused
   const [_isFlipping, setIsFlipping] = useState(false);
   const [numPages, setNumPages] = useState<number | null>(null);
 
@@ -151,11 +151,11 @@ const NotesViewer = () => {
         return;
       }
 
-      setDirection('next');
+      // setDirection('next');
       setCurrentPage(p => p + 1);
     } else {
       if (currentPage <= 1) return;
-      setDirection('prev');
+      // setDirection('prev');
       setCurrentPage(p => p - 1);
     }
   };

@@ -19,7 +19,7 @@ const semesters = [1, 2, 3, 4, 5, 6, 7, 8];
 interface SignupPopupProps {
     isOpen: boolean;
     onClose?: () => void;
-    onSignup: (email: string, password: string, name: string, semester?: string, branch?: string) => boolean;
+    onSignup: (email: string, password: string, name: string, semester?: string, branch?: string) => Promise<boolean> | boolean;
     canClose?: boolean;
     message?: string;
 }
@@ -43,7 +43,7 @@ const SignupPopup = ({ isOpen, onClose, onSignup, canClose = true, message }: Si
         setIsLoading(true);
 
         // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // await new Promise(resolve => setTimeout(resolve, 1000));
 
         const isSignup = !isLogin;
 
@@ -53,7 +53,7 @@ const SignupPopup = ({ isOpen, onClose, onSignup, canClose = true, message }: Si
             return;
         }
 
-        const success = onSignup(
+        const success = await onSignup(
             formData.email,
             formData.password,
             formData.name,
